@@ -18,14 +18,15 @@ export async function load({ locals }) {
         corso: corsi,
         docente: professori, 
         ora: iscrizioni.ora,
-        giorno: iscrizioni.giorno
+        giorno: iscrizioni.giorno,
+        presente: iscrizioni.presente
       })
       .from(iscrizioni)
       .where(eq(iscrizioni.idStudente, locals.user.id))
       .leftJoin(corsi, eq(iscrizioni.idCorso, corsi.id))
       .leftJoin(professori, eq(corsi.docente, professori.id));
 
-    const corsiIscritto = userIscrizioni.map(({ corso, docente, ora, giorno }) => ({
+    const corsiIscritto = userIscrizioni.map(({ corso, docente, ora, giorno, presente }) => ({
       id: corso.id,
       uniqueKey: `${corso.id}-${giorno}-${ora}`, // Add this field for unique keying
       nome: corso.nome,
@@ -33,6 +34,7 @@ export async function load({ locals }) {
       aula: corso.aula,
       ora: ora,
       giorno: giorno,
+      presente: presente,
     }));
     return {
       pageName: 'Dashboard studente',

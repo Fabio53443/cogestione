@@ -44,49 +44,52 @@
 
 <Alert type={alertType} message={alertMessage} show={showAlert} />
 
-<div
-    class="container mx-auto flex flex-col items-center justify-start pt-16 px-4"
->
-    <h1 class="text-3xl font-bold text-center text-[#FB773C] mb-8">Accedi</h1>
-    <div class="w-full max-w-md bg-white shadow-md rounded-lg px-8 pt-6 pb-8 mb-4">
-        <form on:submit={handleLogin}>
-            <div class="mb-4">
-                <label class="block text-gray-700 text-sm font-bold mb-2" for="email">
-                    Email
-                </label>
-                <input
-                    class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-[#EB3678]"
-                    id="email"
-                    type="email"
-                    name="email"
-                    placeholder="La tua email"
-                    required
-                />
-            </div>
-            <div class="mb-6">
-                <label class="block text-gray-700 text-sm font-bold mb-2" for="password">
-                    Password
-                </label>
-                <input
-                    class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-[#EB3678]"
-                    id="password"
-                    type="password"
-                    name="password"
-                    placeholder="La tua password"
-                    required
-                />
-            </div>
-            <div class="flex items-center justify-between">
+<div class="min-h-[70vh] flex items-center justify-center px-4">
+    <div class="w-full max-w-md">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-white mb-2">Bentornato</h1>
+            <p class="text-gray-400">Accedi al tuo account</p>
+        </div>
+        
+        <div class="bg-[#252536] rounded-2xl p-6 md:p-8 border border-gray-700/50">
+            <form on:submit={handleLogin} class="space-y-5">
+                <div>
+                    <label class="block text-gray-300 text-sm font-medium mb-2" for="email">
+                        Email
+                    </label>
+                    <input
+                        class="w-full bg-[#1e1e2e] border border-gray-600 rounded-xl py-3 px-4 text-white placeholder-gray-500 focus:outline-none focus:border-[#FB773C] focus:ring-1 focus:ring-[#FB773C] transition-colors"
+                        id="email"
+                        type="email"
+                        name="email"
+                        placeholder="email@esempio.com"
+                        required
+                    />
+                </div>
+                <div>
+                    <label class="block text-gray-300 text-sm font-medium mb-2" for="password">
+                        Password
+                    </label>
+                    <input
+                        class="w-full bg-[#1e1e2e] border border-gray-600 rounded-xl py-3 px-4 text-white placeholder-gray-500 focus:outline-none focus:border-[#FB773C] focus:ring-1 focus:ring-[#FB773C] transition-colors"
+                        id="password"
+                        type="password"
+                        name="password"
+                        placeholder="••••••••"
+                        required
+                    />
+                </div>
                 <button
-                    class="bg-[#FB773C] hover:bg-[#EB3678] text-white font-bold py-2 px-4 rounded-lg w-full focus:outline-none focus:shadow-outline"
+                    class="w-full bg-[#FB773C] hover:bg-[#EB3678] text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 hover:shadow-lg hover:shadow-[#FB773C]/20 mt-2"
                     type="submit"
                 >
                     Accedi
                 </button>
-            </div>
-        </form>
-        <p class="text-center text-gray-600 text-sm mt-4">
-            Non hai un account? <a href="/register" class="text-[#EB3678] hover:underline">Registrati</a>
+            </form>
+        </div>
+        
+        <p class="text-center text-gray-400 text-sm mt-6">
+            Non hai un account? <a href="/register" class="text-[#FB773C] hover:text-[#EB3678] font-medium">Registrati</a>
         </p>
     </div>
 </div>

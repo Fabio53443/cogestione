@@ -25,73 +25,65 @@
 <main
     class="min-h-screen flex flex-col bg-gradient-to-br from-[#1e1e2e] to-[#181825]"
 >
-    <header
-        class="bg-gradient-to-r from-[#1e1e2e] via-[#181825] to-[#1e1e2e] shadow-lg shadow-[#11111b]/20"
-    >
+    <header class="bg-[#1e1e2e]/80 backdrop-blur-lg border-b border-gray-800 sticky top-0 z-50">
         <div class="container mx-auto px-4 py-3">
-            <div class="flex flex-col sm:flex-row items-center justify-between">
-                <div class="flex items-center mb-4 sm:mb-0">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
                     {#if pageName != "Autogestione"}
                         <a
                             href="/"
-                            class="text-3xl text-[#cdd6f4] mr-4 hover:text-[#f5c2e7] transition-colors duration-300"
+                            class="text-gray-400 hover:text-white transition-colors p-2 hover:bg-white/5 rounded-lg"
                             aria-label="Home"
                         >
-                            <HomeOutline class="w-8 h-8" />
+                            <HomeOutline class="w-5 h-5" />
                         </a>
                     {/if}
-
-                    <h1 class="text-3xl font-bold text-[#cdd6f4]">
+                    <h1 class="text-lg md:text-xl font-semibold text-white truncate max-w-[200px] md:max-w-none">
                         {pageName}
                     </h1>
                 </div>
                 {#if !user}
-                    <nav class="flex space-x-4">
-
-                        <a
-                            href="/login"
-                            class="outline rounded-lg flex items-center text-[#cdd6f4] hover:text-[#1a1a28] hover:bg-[#cdd6f4] transition-all duration-300 text-lg hover:scale-105 px-2 py-1"
-                            >Accedi <ArrowLeftToBracketOutline
-                                class="w-5 h-5"
-                            /></a
-                        >
-                    </nav>
+                    <a
+                        href="/login"
+                        class="flex items-center gap-2 bg-[#FB773C] hover:bg-[#EB3678] text-white text-sm font-medium px-4 py-2 rounded-lg transition-all duration-200"
+                    >
+                        Accedi
+                    </a>
                 {:else if user.role === "studente"}
                     <div class="relative">
                         <button
                             on:click={() => (dropdownOpen = !dropdownOpen)}
-                            class="outline rounded-lg flex items-center text-[#cdd6f4] hover:text-[#1a1a28] hover:bg-[#cdd6f4] transition-all duration-300 text-lg hover:scale-105 px-2 py-1"
+                            class="flex items-center gap-2 text-gray-300 hover:text-white bg-white/5 hover:bg-white/10 px-3 py-2 rounded-lg transition-all duration-200"
                         >
-                            Menu
-                            <DotsVerticalOutline class="w-5 h-5 ml-2" />
+                            <UserCircleOutline class="w-5 h-5" />
+                            <span class="hidden sm:inline">Menu</span>
+                            <DotsVerticalOutline class="w-4 h-4" />
                         </button>
                         {#if dropdownOpen}
-                            <div
-                                class="absolute right-0 mt-2 bg-[#1e1e2e] shadow-lg rounded"
-                            >
+                            <div class="absolute right-0 mt-2 w-48 bg-[#252536] border border-gray-700 shadow-xl rounded-xl overflow-hidden">
                                 <a
                                     href="/studente/profile"
-                                    class="flex items-center block px-4 py-2 text-[#cdd6f4] hover:bg-[#181825]"
-                                    ><UserCircleOutline class="w-4 h-4 mr-2" /> Profilo
+                                    class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:text-white hover:bg-white/5 transition-colors"
+                                >
+                                    <UserCircleOutline class="w-4 h-4" /> Profilo
                                 </a>
                                 <a
                                     href="/logout"
-                                    class="flex items-center block px-4 py-2 text-[#cdd6f4] hover:bg-[#181825]"
-                                    ><ArrowRightToBracketOutline
-                                        class="w-4 h-4 mr-2"
-                                    /> Esci
+                                    class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:text-white hover:bg-white/5 transition-colors"
+                                >
+                                    <ArrowRightToBracketOutline class="w-4 h-4" /> Esci
                                 </a>
                             </div>
                         {/if}
                     </div>
                 {:else if user.role === "docente"}
-                    <nav class="flex space-x-4">
-                        <a
-                            href="/logout"
-                            class="text-[#cdd6f4] hover:text-[#f5c2e7] transition-all duration-300 text-lg hover:scale-105"
-                            >Esci</a
-                        >
-                    </nav>
+                    <a
+                        href="/logout"
+                        class="flex items-center gap-2 text-gray-300 hover:text-white bg-white/5 hover:bg-white/10 px-4 py-2 rounded-lg transition-all duration-200"
+                    >
+                        <ArrowRightToBracketOutline class="w-4 h-4" />
+                        <span>Esci</span>
+                    </a>
                 {/if}
             </div>
         </div>
@@ -101,34 +93,18 @@
         <slot></slot>
     </div>
 
-    <footer
-        class="bg-gradient-to-r from-[#1e1e2e] via-[#181825] to-[#1e1e2e] text-[#cdd6f4] py-4 mt-auto"
-    >
-        <div class="container mx-auto px-4 text-center text-sm">
-            Questo sito è
-            <a
-                class="text-[#f5c2e7] hover:text-[#fab387] transition-all duration-300 hover:scale-105"
-                href="https://github.com/Fabio53443/cogestione">open source</a
-            >
-            e sviluppato da
-            <a
-                href="https://github.com/Smartlinuxcoder"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="text-[#f5c2e7] hover:text-[#fab387] transition-all duration-300 hover:scale-105"
-            >
-                Smartlinux.xyz
-            </a>
-            +
-            <a
-                href="https://github.com/fabio53443"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="text-[#f5c2e7] hover:text-[#fab387] transition-all duration-300 hover:scale-105"
-            >
-                Fabio53443
-            </a>
-            <br /> <a href="/admin">Admin</a>
+    <footer class="border-t border-gray-800 py-6 mt-auto">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-500">
+                <div class="flex items-center gap-1">
+                    <a href="https://github.com/Fabio53443/cogestione" class="hover:text-gray-300 transition-colors">Open source</a>
+                    <span>·</span>
+                    <a href="https://github.com/Smartlinuxcoder" class="hover:text-gray-300 transition-colors">Smartlinux</a>
+                    <span>+</span>
+                    <a href="https://github.com/fabio53443" class="hover:text-gray-300 transition-colors">Fabio53443</a>
+                </div>
+                <a href="/admin" class="hover:text-gray-300 transition-colors">Admin</a>
+            </div>
         </div>
     </footer>
 </main>

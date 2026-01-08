@@ -11,6 +11,7 @@
         const nome = event.target.elements.nome.value;
         const email = event.target.elements.email.value;
         const password = event.target.elements.password.value;
+        const classe = event.target.elements.classe.value;
 
         try {
             const response = await fetch("/api/studenti/register", {
@@ -22,6 +23,7 @@
                     nome,
                     email,
                     password,
+                    classe,
                 }),
             });
 
@@ -48,80 +50,79 @@
     };
 </script>
 
-<!-- Use the alert component -->
 <Alert type={alertType} message={alertMessage} show={showAlert} />
 
-<div
-    class="container mx-auto flex flex-col items-center justify-start pt-16 px-4"
->
-    <h1 class="text-3xl font-bold text-center text-[#FB773C] mb-8">
-        Registrati
-    </h1>
+<div class="min-h-[70vh] flex items-center justify-center px-4">
     <div class="w-full max-w-md">
-        <form
-            on:submit={handleRegister}
-            class="bg-white shadow-md rounded-lg px-8 pt-6 pb-8 mb-4"
-        >
-        <div class="mb-4">
-                
-            <label
-                class="block text-gray-700 text-sm font-bold mb-2"
-                for="nome"
-            >
-                Nome completo
-            </label>
-            <input
-                class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-[#EB3678]"
-                id="nome"
-                type="text"
-                name="nome"
-                placeholder="Nome e cognome"
-                required
-            />
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-white mb-2">Crea account</h1>
+            <p class="text-gray-400">Registrati per accedere ai corsi</p>
         </div>
-    <div class="mb-4">
-                <label
-                    class="block text-gray-700 text-sm font-bold mb-2"
-                    for="email"
-                >
-                    Email
-                </label>
-                <input
-                    class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-[#EB3678]"
-                    id="email"
-                    type="email"
-                    name="email"
-                    placeholder="La tua email"
-                    required
-                />
-            </div>
-            <div class="mb-6">
-                <label
-                    class="block text-gray-700 text-sm font-bold mb-2"
-                    for="password"
-                >
-                    Password
-                </label>
-                <input
-                    class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline focus:border-[#EB3678]"
-                    id="password"
-                    type="password"
-                    name="password"
-                    placeholder="******************"
-                    required
-                />
-            </div>
-            <div class="flex items-center justify-between">
+        
+        <div class="bg-[#252536] rounded-2xl p-6 md:p-8 border border-gray-700/50">
+            <form on:submit={handleRegister} class="space-y-5">
+                <div>
+                    <label class="block text-gray-300 text-sm font-medium mb-2" for="nome">
+                        Nome completo
+                    </label>
+                    <input
+                        class="w-full bg-[#1e1e2e] border border-gray-600 rounded-xl py-3 px-4 text-white placeholder-gray-500 focus:outline-none focus:border-[#FB773C] focus:ring-1 focus:ring-[#FB773C] transition-colors"
+                        id="nome"
+                        type="text"
+                        name="nome"
+                        placeholder="Mario Rossi"
+                        required
+                    />
+                </div>
+                <div>
+                    <label class="block text-gray-300 text-sm font-medium mb-2" for="classe">
+                        Classe
+                    </label>
+                    <input
+                        class="w-full bg-[#1e1e2e] border border-gray-600 rounded-xl py-3 px-4 text-white placeholder-gray-500 focus:outline-none focus:border-[#FB773C] focus:ring-1 focus:ring-[#FB773C] transition-colors"
+                        id="classe"
+                        type="text"
+                        name="classe"
+                        placeholder="5A"
+                    />
+                </div>
+                <div>
+                    <label class="block text-gray-300 text-sm font-medium mb-2" for="email">
+                        Email
+                    </label>
+                    <input
+                        class="w-full bg-[#1e1e2e] border border-gray-600 rounded-xl py-3 px-4 text-white placeholder-gray-500 focus:outline-none focus:border-[#FB773C] focus:ring-1 focus:ring-[#FB773C] transition-colors"
+                        id="email"
+                        type="email"
+                        name="email"
+                        placeholder="email@esempio.com"
+                        required
+                    />
+                </div>
+                <div>
+                    <label class="block text-gray-300 text-sm font-medium mb-2" for="password">
+                        Password
+                    </label>
+                    <input
+                        class="w-full bg-[#1e1e2e] border border-gray-600 rounded-xl py-3 px-4 text-white placeholder-gray-500 focus:outline-none focus:border-[#FB773C] focus:ring-1 focus:ring-[#FB773C] transition-colors"
+                        id="password"
+                        type="password"
+                        name="password"
+                        placeholder="••••••••"
+                        required
+                    />
+                </div>
                 <button
-                    class="bg-[#FB773C] hover:bg-[#EB3678] text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline w-full transition duration-200"
+                    class="w-full bg-[#FB773C] hover:bg-[#EB3678] text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 hover:shadow-lg hover:shadow-[#FB773C]/20 mt-2"
                     type="submit"
                 >
                     Registrati
                 </button>
-            </div>
-        </form>
-        <p class="text-center text-gray-300 text-sm">
-            Hai già un account? <a href="/login" class="text-[#EB3678] hover:underline">Accedi</a>
+            </form>
+        </div>
+        
+        <p class="text-center text-gray-400 text-sm mt-6">
+            Hai già un account? <a href="/login" class="text-[#FB773C] hover:text-[#EB3678] font-medium">Accedi</a>
         </p>
     </div>
 </div>

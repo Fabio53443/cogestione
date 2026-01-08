@@ -101,9 +101,9 @@
 
   function getSeatsColor(free, total) {
     const percentage = (free / total) * 100;
-    if (percentage > 66) return 'text-green-600';
-    if (percentage > 33) return 'text-orange-500';
-    return 'text-red-500';
+    if (percentage > 66) return 'text-green-400';
+    if (percentage > 33) return 'text-orange-400';
+    return 'text-red-400';
   }
 
   function getEnrollmentStatus(dayIndex, timeIndex) {
@@ -135,49 +135,62 @@
 </script>
 
 {#if error}
-  <div class="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
-    {error}
+  <div class="max-w-4xl mx-auto px-4">
+    <div class="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-xl">
+      {error}
+    </div>
   </div>
 {:else if corso}
-  <div class="max-w-6xl mx-auto px-4">
-    <h1 class="text-4xl font-bold text-[#FB773C] mb-6">{corso.nome}</h1>
+  <div class="max-w-4xl mx-auto px-4">
+    <Alert type={alertType} message={alertMessage} show={showAlert} on:close={() => showAlert = false} />
     
-    <div class="bg-white shadow-lg rounded-xl p-6 mb-8">       
-      <div class="grid md:grid-cols-3 gap-6">
-        <div class="space-y-3">
-          <h3 class="font-semibold text-gray-700">Descrizione</h3>
-          <p class="text-gray-600">{corso.descrizione}</p>
-        </div>
-        <div class="space-y-3">
-          <h3 class="font-semibold text-gray-700">Aula</h3>
-          <p class="text-gray-600">{corso.aula}</p>
-        </div>
-        <div class="space-y-3">
-          <h3 class="font-semibold text-gray-700">Durata</h3>
-          <p class="text-gray-600">{corso.length} ore</p>
-        </div>
+    <!-- Back button -->
+    <a href="/studente/corsi" class="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-6 transition-colors">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+      Torna ai corsi
+    </a>
+    
+    <h1 class="text-2xl md:text-3xl font-bold text-white mb-6">{corso.nome}</h1>
+    
+    <!-- Course Info Card -->
+    <div class="bg-[#252536] rounded-2xl p-6 mb-6 border border-gray-700/50">       
+      <p class="text-gray-300 mb-6">{corso.descrizione}</p>
+      <div class="flex flex-wrap gap-3">
+        <span class="inline-flex items-center gap-2 bg-[#1e1e2e] text-gray-300 px-4 py-2 rounded-xl">
+          <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+          Aula {corso.aula}
+        </span>
+        <span class="inline-flex items-center gap-2 bg-[#1e1e2e] text-gray-300 px-4 py-2 rounded-xl">
+          <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          {corso.length} {corso.length === 1 ? 'ora' : 'ore'}
+        </span>
+        <span class="inline-flex items-center gap-2 bg-[#1e1e2e] text-gray-300 px-4 py-2 rounded-xl">
+          <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          {corso.numPosti} posti
+        </span>
       </div>
     </div>
 
-    <Alert type={alertType} message={alertMessage} show={showAlert} on:close={() => showAlert = false} />
-
     {#if corso.schedule && corso.availability}
-      <div class="bg-white shadow-lg rounded-xl p-6">
-        <h2 class="text-2xl font-semibold text-gray-800 mb-6">Orario del corso</h2>
-        <div class="overflow-x-auto">
-          <table class="w-full border-collapse">
+      <!-- Schedule - Desktop Table -->
+      <div class="hidden md:block bg-[#252536] rounded-2xl border border-gray-700/50 overflow-hidden">
+        <div class="bg-[#FB773C]/10 border-b border-gray-700/50 px-5 py-4">
+          <h2 class="text-lg font-semibold text-[#FB773C]">Disponibilità</h2>
+        </div>
+        <div class="p-4">
+          <table class="w-full">
             <thead>
               <tr>
-                <th class="bg-gray-50 p-4 border-b-2 border-gray-200 text-left text-gray-700 font-semibold">Ora</th>
+                <th class="text-left text-gray-500 text-sm font-medium p-3">Ora</th>
                 {#each days as day}
-                  <th class="bg-gray-50 p-4 border-b-2 border-gray-200 text-left text-gray-700 font-semibold">{day}</th>
+                  <th class="text-left text-gray-500 text-sm font-medium p-3">{day.slice(0, 3)}</th>
                 {/each}
               </tr>
             </thead>
             <tbody>
               {#each Array(numHours - corso.length + 1).fill(0).map((_, i) => i).filter(i => i % corso.length === 0) as timeIndex}
-                <tr class="hover:bg-gray-50 transition-colors">
-                  <td class="p-4 border-b border-gray-200 font-medium">
+                <tr>
+                  <td class="p-3 text-gray-300 font-medium whitespace-nowrap">
                     {#if corso.length > 1}
                       {getHourLabel(timeIndex)} - {getHourLabel(timeIndex + corso.length - 1)}
                     {:else}
@@ -185,49 +198,54 @@
                     {/if}
                   </td>
                   {#each days as _, dayIndex}
-                    <td class="p-4 sm:p-2 border-b border-gray-200">
+                    <td class="p-2">
                       {#if corso.availability.includes(dayIndex) && canEnroll(dayIndex, timeIndex)}
-                        <div class="flex flex-col gap-2">
-                          <div class="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between gap-2">
-                            <span class="font-medium text-gray-700 text-sm sm:text-base whitespace-nowrap flex flex-col items-center sm:items-start">
-                              <span>Liberi:</span>
-                              <span class={`text-lg font-bold ${getSeatsColor(computeFreeSeats(dayIndex, timeIndex), corso.numPosti)}`}>
-                                {computeFreeSeats(dayIndex, timeIndex)}/{corso.numPosti}
-                              </span>
+                        {@const status = getEnrollmentStatus(dayIndex, timeIndex)}
+                        {@const freeSeats = computeFreeSeats(dayIndex, timeIndex)}
+                        <div class="bg-[#1e1e2e] rounded-xl p-3 min-w-[100px]">
+                          <div class="flex items-center justify-between gap-2 mb-2">
+                            <span class={`text-sm font-bold ${getSeatsColor(freeSeats, corso.numPosti)}`}>
+                              {freeSeats}/{corso.numPosti}
                             </span>
-                            <button
-                              class={`px-2 sm:px-4 py-1 sm:py-2 text-sm rounded-lg font-medium transition-colors w-full sm:w-auto
-                                ${
-                                  {
-                                    'enrolled': 'bg-green-500 hover:bg-red-500 text-white group',
-                                    'conflict': 'bg-orange-500 text-white cursor-not-allowed',
-                                    'full': 'bg-gray-300 cursor-not-allowed',
-                                    'available': 'bg-blue-500 hover:bg-blue-600 text-white'
-                                  }[getEnrollmentStatus(dayIndex, timeIndex)]
-                                }`}
-                              on:click={() => getEnrollmentStatus(dayIndex, timeIndex) === 'enrolled'
-                                ? unenroll(dayIndex, timeIndex) 
-                                : enroll(dayIndex, timeIndex)}
-                              disabled={!['enrolled', 'available'].includes(getEnrollmentStatus(dayIndex, timeIndex))}
-                            >
-                              {#if getEnrollmentStatus(dayIndex, timeIndex) === 'enrolled'}
-                                <span class="group-hover:hidden">✓</span>
-                                <span class="hidden group-hover:inline">Disiscriviti</span>
-                              {:else if getEnrollmentStatus(dayIndex, timeIndex) === 'conflict'}
-                                -
-                              {:else if getEnrollmentStatus(dayIndex, timeIndex) === 'full'}
-                                N/D
-                              {:else}
-                                Iscriviti
-                              {/if}
-                            </button>
+                            {#if status === 'enrolled'}
+                              <span class="w-2 h-2 bg-green-400 rounded-full"></span>
+                            {/if}
                           </div>
-                          <div class="relative w-full h-1.5 sm:h-2 rounded-full bg-gray-200 overflow-hidden">
+                          <div class="w-full h-1.5 rounded-full bg-gray-700 overflow-hidden mb-3">
                             <div
-                              class={`absolute top-0 left-0 h-full transition-all duration-300 ${barColor(computeFreeSeats(dayIndex, timeIndex), corso.numPosti)}`}
-                              style="width: {((computeFreeSeats(dayIndex, timeIndex) / corso.numPosti) * 100)}%;"
-                            />
+                              class={`h-full transition-all duration-300 ${barColor(freeSeats, corso.numPosti)}`}
+                              style="width: {((freeSeats / corso.numPosti) * 100)}%;"
+                            ></div>
                           </div>
+                          <button
+                            class={`w-full py-2 px-3 text-xs font-semibold rounded-lg transition-all duration-200
+                              ${status === 'enrolled' 
+                                ? 'bg-green-500/20 text-green-400 hover:bg-red-500/20 hover:text-red-400' 
+                                : status === 'conflict'
+                                ? 'bg-gray-700/50 text-gray-500 cursor-not-allowed'
+                                : status === 'full'
+                                ? 'bg-gray-700/50 text-gray-500 cursor-not-allowed'
+                                : 'bg-[#FB773C] hover:bg-[#EB3678] text-white'
+                              }`}
+                            on:click={() => status === 'enrolled'
+                              ? unenroll(dayIndex, timeIndex) 
+                              : enroll(dayIndex, timeIndex)}
+                            disabled={!['enrolled', 'available'].includes(status)}
+                          >
+                            {#if status === 'enrolled'}
+                              ✓ Iscritto
+                            {:else if status === 'conflict'}
+                              Occupato
+                            {:else if status === 'full'}
+                              Pieno
+                            {:else}
+                              Iscriviti
+                            {/if}
+                          </button>
+                        </div>
+                      {:else}
+                        <div class="bg-[#1e1e2e]/50 rounded-xl p-3 min-w-[100px] h-full flex items-center justify-center">
+                          <span class="text-gray-600 text-xs">—</span>
                         </div>
                       {/if}
                     </td>
@@ -237,6 +255,78 @@
             </tbody>
           </table>
         </div>
+      </div>
+
+      <!-- Schedule - Mobile Cards -->
+      <div class="md:hidden space-y-4">
+        <h2 class="text-lg font-semibold text-[#FB773C]">Disponibilità</h2>
+        {#each corso.availability.sort((a, b) => a - b) as dayIndex}
+          <div class="bg-[#252536] rounded-2xl border border-gray-700/50 overflow-hidden">
+            <div class="bg-[#FB773C]/10 border-b border-gray-700/50 px-4 py-3">
+              <h3 class="font-semibold text-white">{days[dayIndex]}</h3>
+            </div>
+            <div class="p-3 space-y-2">
+              {#each Array(numHours - corso.length + 1).fill(0).map((_, i) => i).filter(i => i % corso.length === 0) as timeIndex}
+                {#if canEnroll(dayIndex, timeIndex)}
+                  {@const status = getEnrollmentStatus(dayIndex, timeIndex)}
+                  {@const freeSeats = computeFreeSeats(dayIndex, timeIndex)}
+                  <div class="bg-[#1e1e2e] rounded-xl p-4 flex items-center gap-4">
+                    <div class="flex-shrink-0 text-center">
+                      <span class="block text-white font-semibold text-sm">
+                        {#if corso.length > 1}
+                          {getHourLabel(timeIndex)}-{getHourLabel(timeIndex + corso.length - 1)}
+                        {:else}
+                          {getHourLabel(timeIndex)}
+                        {/if}
+                      </span>
+                    </div>
+                    <div class="flex-grow">
+                      <div class="flex items-center gap-2 mb-1">
+                        <span class={`text-sm font-bold ${getSeatsColor(freeSeats, corso.numPosti)}`}>
+                          {freeSeats}/{corso.numPosti} posti
+                        </span>
+                        {#if status === 'enrolled'}
+                          <span class="w-2 h-2 bg-green-400 rounded-full"></span>
+                        {/if}
+                      </div>
+                      <div class="w-full h-1.5 rounded-full bg-gray-700 overflow-hidden">
+                        <div
+                          class={`h-full transition-all duration-300 ${barColor(freeSeats, corso.numPosti)}`}
+                          style="width: {((freeSeats / corso.numPosti) * 100)}%;"
+                        ></div>
+                      </div>
+                    </div>
+                    <button
+                      class={`flex-shrink-0 py-2 px-4 text-sm font-semibold rounded-xl transition-all duration-200
+                        ${status === 'enrolled' 
+                          ? 'bg-green-500/20 text-green-400' 
+                          : status === 'conflict'
+                          ? 'bg-gray-700/50 text-gray-500 cursor-not-allowed'
+                          : status === 'full'
+                          ? 'bg-gray-700/50 text-gray-500 cursor-not-allowed'
+                          : 'bg-[#FB773C] hover:bg-[#EB3678] text-white'
+                        }`}
+                      on:click={() => status === 'enrolled'
+                        ? unenroll(dayIndex, timeIndex) 
+                        : enroll(dayIndex, timeIndex)}
+                      disabled={!['enrolled', 'available'].includes(status)}
+                    >
+                      {#if status === 'enrolled'}
+                        ✓
+                      {:else if status === 'conflict'}
+                        —
+                      {:else if status === 'full'}
+                        —
+                      {:else}
+                        +
+                      {/if}
+                    </button>
+                  </div>
+                {/if}
+              {/each}
+            </div>
+          </div>
+        {/each}
       </div>
     {/if}
   </div>

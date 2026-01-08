@@ -5,16 +5,16 @@ import { studenti } from '$lib/db/models';
 export const POST = async ({ request }) => {
     try {
         const formData = await request.json();
-        const {  nome, email, password } = formData;
+        const { nome, email, password, classe } = formData;
         if ( !nome || !email || !password ) {
             return json({ success: false, message: 'All fields are required.' }, { status: 400 });
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
         await db.insert(studenti).values({
-            
             nomeCompleto: nome,
             email,
+            classe: classe || null,
             hashedPass: hashedPassword, 
         });
 
