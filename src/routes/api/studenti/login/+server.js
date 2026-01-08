@@ -19,29 +19,30 @@ export const POST = async ({ request }) => {
 
         const result = await db.select({
             id: studenti.id,
-            google_id: studenti.googleId, 
+            hashedPass: studenti.hashedPass, 
             nome_completo: studenti.nomeCompleto, 
         })
         .from(studenti)
         .where(eq(studenti.email, username));
-        const nome_completo = result[0].nome_completo;
 
         if (result.length === 0) {
-            return json({ success: false, message: 'Invalid username or password.' }, { status: 401 });
+            return json({ success: false, message: 'Email o password non validi.' }, { status: 401 });
         }
-        if (result[0].google_id === password) {
-            const id = result[0].id;
-            const token = await new SignJWT({ username, id , role: 'studente', nome_completo })
-                .setProtectedHeader({ alg: 'HS256' })
-                .setIssuedAt()
-                .setExpirationTime('36h')
-                .sign(secret);
-            return json({ success: true, token });
 
-                }
+        const user = result[0];
+        const isPasswordValid = await bcrypt.compare(password, user.hashedPass);
 
+        if (!isPasswordValid) {
+            return json({ success: false, message: 'Email o password non validi.' }, { status: 401 });
+        }
 
+        const token = await new SignJWT({ username, id: user.id, role: 'studente', nome_completo: user.nome_completo })
+            .setProtectedHeader({ alg: 'HS256' })
+            .setIssuedAt()
+            .setExpirationTime('36h')
+            .sign(secret);
         
+        return json({ success: true, token });
     } catch (error) {
         console.error('Login Error:', error);
         return json({ success: false, message: 'Login failed.' }, { status: 500 });
