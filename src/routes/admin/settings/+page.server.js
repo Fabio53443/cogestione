@@ -3,14 +3,14 @@ import { isAdmin } from '$lib/isAdmin';
 import { getConfig } from '$lib/config';
 
 export async function load({ locals }) {
-  if (!locals.user || locals.user.role !== 'docente' && !isAdmin(locals.user)) {
-    throw redirect(302, '/');
+  if (!(await isAdmin(locals))) {
+    throw redirect(302, '/studente/dashboard');
   }
-  
+
   const config = await getConfig();
-  
+
   return {
-    pageName: 'Nuovo corso',
-    siteConfig: config
+    pageName: 'Impostazioni',
+    config
   };
 }

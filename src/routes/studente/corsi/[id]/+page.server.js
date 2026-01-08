@@ -1,12 +1,15 @@
 import { db } from '$lib/db/db.js';
 import { corsi, iscrizioni } from '$lib/db/models.js';
 import { eq } from 'drizzle-orm';
+import { getConfig } from '$lib/config';
 
 export async function load({ params, locals }) {
   const courseId = parseInt(params.id, 10);
   if (!locals.user) {
     return { corso: null, error: 'Utente non autenticato' };
   }
+
+  const config = await getConfig();
 
   // Load the specific course by ID
   const [course] = await db
@@ -38,7 +41,7 @@ export async function load({ params, locals }) {
       schedule: course.schedule,
       availability: course.availability,
     }, 
-    days: ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato'],
+    siteConfig: config,
     enrolmentDict
   };
 }

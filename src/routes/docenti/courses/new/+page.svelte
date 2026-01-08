@@ -1,6 +1,10 @@
 <script>
   import Alert from "$lib/components/Alert.svelte";
   import { goto } from "$app/navigation";
+  export let data;
+  
+  const { siteConfig } = data;
+  
   let showAlert = false;
   let alertMessage = "";
   let alertType;
@@ -14,13 +18,17 @@
     availability: [],
   };
 
-  const giorni = [
+  // Get enabled days from config
+  $: giorni = siteConfig?.days?.filter(d => d.enabled).map(d => ({ id: d.id, name: d.name })) || [
     { id: 0, name: "Lunedì" },
     { id: 1, name: "Martedì" },
     { id: 2, name: "Mercoledì" },
     { id: 3, name: "Giovedì" },
     { id: 4, name: "Venerdì" },
   ];
+  
+  $: maxCourseLength = siteConfig?.maxCourseLength || 3;
+  $: enabledHours = siteConfig?.hours?.filter(h => h.enabled) || [];
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -160,7 +168,7 @@
         id="length"
         type="range"
         min="1"
-        max="3"
+        max={maxCourseLength}
         bind:value={formData.length}
         required
           />

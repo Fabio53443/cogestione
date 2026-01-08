@@ -166,7 +166,15 @@
 
 <div class="container mx-auto px-4 py-8">
     <div class="bg-white shadow-lg rounded-lg p-6">
-        <h1 class="text-3xl font-bold text-[#FB773C] mb-8">Dashboard Amministratore</h1>
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-3xl font-bold text-[#FB773C]">Dashboard Amministratore</h1>
+            <a 
+                href="/admin/settings" 
+                class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200 flex items-center gap-2"
+            >
+                ⚙️ Impostazioni
+            </a>
+        </div>
         
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
             <button

@@ -1,27 +1,16 @@
 <script>
     import Alert from "$lib/components/Alert.svelte";
-    import { onMount } from "svelte";
 
     let showAlert = false;
     let alertMessage = "";
     let alertType = "info";
-    let emailInput = "";
-    let emailInputElement;
-
-    $: fullEmail = emailInput;
-
-    onMount(() => {
-        if (emailInputElement) {
-            emailInputElement.addEventListener("input", handleEmailInput);
-        }
-    });
 
     const handleRegister = async (event) => {
         event.preventDefault();
 
         const nome = event.target.elements.nome.value;
+        const email = event.target.elements.email.value;
         const password = event.target.elements.password.value;
-        const classe = event.target.elements.classe.value;
 
         try {
             const response = await fetch("/api/studenti/register", {
@@ -31,7 +20,7 @@
                 },
                 body: JSON.stringify({
                     nome,
-                    email: fullEmail,
+                    email,
                     password,
                 }),
             });
@@ -40,21 +29,22 @@
 
             if (result.success) {
                 alertType = "success";
-                alertMessage = "Registration successful!";
+                alertMessage = "Registrazione completata! Ora puoi accedere.";
+                showAlert = true;
+                // Redirect to login after a short delay
+                setTimeout(() => {
+                    window.location.href = "/login";
+                }, 1500);
             } else {
                 alertType = "error";
-                alertMessage = result.message || "Registration failed.";
+                alertMessage = result.message || "Registrazione fallita.";
+                showAlert = true;
             }
         } catch (error) {
             alertType = "error";
-            alertMessage = "An unexpected error occurred.";
-        } finally {
+            alertMessage = "Si è verificato un errore.";
             showAlert = true;
         }
-    };
-
-    const handleEmailInput = (event) => {
-        emailInput = event.target.value.replace(suffix, "");
     };
 </script>
 
@@ -85,7 +75,7 @@
                 id="nome"
                 type="text"
                 name="nome"
-                placeholder="Nome utente"
+                placeholder="Nome e cognome"
                 required
             />
         </div>
@@ -96,18 +86,14 @@
                 >
                     Email
                 </label>
-                <div class="relative">
-                    <input
-                        bind:this={emailInputElement}
-                        class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-[#EB3678]"
-                        id="email"
-                        type="text"
-                        name="email"
-                        placeholder="Email"
-                        required
-                        bind:value={emailInput}
-                    />
-                </div>
+                <input
+                    class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-[#EB3678]"
+                    id="email"
+                    type="email"
+                    name="email"
+                    placeholder="La tua email"
+                    required
+                />
             </div>
             <div class="mb-6">
                 <label
@@ -134,5 +120,8 @@
                 </button>
             </div>
         </form>
+        <p class="text-center text-gray-300 text-sm">
+            Hai già un account? <a href="/login" class="text-[#EB3678] hover:underline">Accedi</a>
+        </p>
     </div>
 </div>

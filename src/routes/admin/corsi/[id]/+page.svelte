@@ -2,8 +2,11 @@
   import AttendanceModal from '$lib/components/AttendanceModal.svelte';
   import { goto } from '$app/navigation';
   export let data;
-  const { corso, error } = data;
-  let days = ["Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"];
+  const { corso, error, siteConfig } = data;
+  
+  // Get enabled days and hours from config
+  $: days = siteConfig?.days?.filter(d => d.enabled).map(d => d.name) || ["Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì"];
+  $: enabledHours = siteConfig?.hours?.filter(h => h.enabled) || [];
 
   let showAttendanceModal = false;
   let selectedStudents = [];
@@ -13,6 +16,11 @@
 
   function barColor(free, total) {
     return free === 0 ? 'bg-red-500' : 'bg-green-500';
+  }
+  
+  function getHourLabel(hourIndex) {
+    const hour = enabledHours[hourIndex];
+    return hour ? hour.label : `${hourIndex + 1}°`;
   }
 
   async function openAttendanceModal(dayIndex, timeIndex) {
@@ -148,7 +156,7 @@
                       class="w-4 h-4"
                     />
                   </td>
-                  <td class="py-3 font-semibold pl-4">{timeIndex + 2}°</td>
+                  <td class="py-3 font-semibold pl-4">{getHourLabel(timeIndex)}</td>
                   <td class="py-3">
                     <div class="flex items-center gap-4">
                       <div class="text-base whitespace-nowrap">

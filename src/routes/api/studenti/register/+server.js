@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit'; // To send JSON responses
 import { db } from '$lib/db/db'; // Assuming you're using Drizzle ORM for your database
-import bcrypt from 'bcrypt'; // For hashing passwords
+import bcrypt from 'bcryptjs'; // For hashing passwords
 import { studenti } from '$lib/db/models';
 export const POST = async ({ request }) => {
     try {

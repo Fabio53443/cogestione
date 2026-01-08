@@ -2,8 +2,11 @@
   import AttendanceModal from '$lib/components/AttendanceModal.svelte';
   import { goto } from '$app/navigation';
   export let data;
-  const { corso, error } = data;
-  let days = ["Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"];
+  const { corso, error, siteConfig } = data;
+  
+  // Get enabled days and hours from config
+  $: days = siteConfig?.days?.filter(d => d.enabled).map(d => d.name) || ["Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì"];
+  $: enabledHours = siteConfig?.hours?.filter(h => h.enabled) || [];
 
   let showAttendanceModal = false;
   let selectedStudents = [];
@@ -12,6 +15,11 @@
 
   function barColor(free, total) {
     return free === 0 ? 'bg-red-500' : 'bg-green-500';
+  }
+  
+  function getHourLabel(hourIndex) {
+    const hour = enabledHours[hourIndex];
+    return hour ? hour.label : `${hourIndex + 1}°`;
   }
 
   async function openAttendanceModal(dayIndex, timeIndex) {
@@ -72,9 +80,9 @@
                 <tr class="hover:bg-black-100 hover:bg-opacity-20 transition-colors text-black">
                   <td class="py-3 font-semibold pl-4">
                     {#if corso.length > 1}
-                      {(groupIndex * corso.length) + 2}° - {(groupIndex * corso.length) + corso.length}°
+                      {getHourLabel(groupIndex * corso.length)} - {getHourLabel((groupIndex * corso.length) + corso.length - 1)}
                     {:else}
-                      {(groupIndex * corso.length) + 2}°
+                      {getHourLabel(groupIndex * corso.length)}
                     {/if}
                   </td>
                   <td class="py-3">

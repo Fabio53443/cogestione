@@ -2,11 +2,14 @@ import { redirect } from '@sveltejs/kit';
 import { db } from '$lib/db/db.js';
 import { eq } from 'drizzle-orm';
 import { corsi, iscrizioni, professori } from '$lib/db/models.js';
+import { getConfig } from '$lib/config';
 
 export async function load({ locals }) {
   if (!locals.user || locals.user.role !== 'studente') {
     throw redirect(302, '/');
   }
+
+  const config = await getConfig();
 
   try {
     // Get all courses the student is enrolled in
@@ -34,7 +37,8 @@ export async function load({ locals }) {
     return {
       pageName: 'Dashboard studente',
       user: locals.user,
-      corsi: corsiIscritto
+      corsi: corsiIscritto,
+      siteConfig: config
     };
   } catch (error) {
     console.error('Error fetching courses:', error);
@@ -43,7 +47,8 @@ export async function load({ locals }) {
       pageName: 'Dashboard studente',
       user: locals.user,
       corsi: [],
-      error: 'Si è verificato un errore durante il caricamento dei corsi.'
+      error: 'Si è verificato un errore durante il caricamento dei corsi.',
+      siteConfig: config
     };
   }
 }

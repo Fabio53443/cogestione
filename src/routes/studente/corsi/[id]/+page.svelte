@@ -2,8 +2,13 @@
   import Alert from '$lib/components/Alert.svelte';
   import { goto } from '$app/navigation';
   export let data;
-  const { corso, error, iscrizioni, enrolmentDict } = data;
-  let days = ["Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì"];
+  const { corso, error, iscrizioni, enrolmentDict, siteConfig } = data;
+  
+  // Get enabled days and hours from config
+  $: days = siteConfig?.days?.filter(d => d.enabled).map(d => d.name) || ["Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì"];
+  $: enabledHours = siteConfig?.hours?.filter(h => h.enabled) || [];
+  $: numHours = enabledHours.length || 5;
+  
   let showAlert = false;
   let alertMessage = '';
   let alertType = '';
@@ -70,12 +75,17 @@
 
   function canEnroll(dayIndex, timeIndex) {
     const courseLength = corso.length;
-    if (timeIndex + courseLength > 6) return false; // Ensure the course can fit in the day's schedule
+    if (timeIndex + courseLength > numHours) return false; // Ensure the course can fit in the day's schedule
     if (!corso.schedule || !corso.schedule[dayIndex]) return false;
     for (let i = 0; i < courseLength; i++) {
       if (corso.schedule[dayIndex][timeIndex + i] === undefined) return false;
     }
     return true;
+  }
+  
+  function getHourLabel(hourIndex) {
+    const hour = enabledHours[hourIndex];
+    return hour ? hour.label : `${hourIndex + 1}°`;
   }
 
   function computeFreeSeats(dayIndex, timeIndex) {
@@ -165,13 +175,13 @@
               </tr>
             </thead>
             <tbody>
-              {#each Array(5 - corso.length + 1).fill(0).map((_, i) => i).filter(i => i % corso.length === 0) as timeIndex}
+              {#each Array(numHours - corso.length + 1).fill(0).map((_, i) => i).filter(i => i % corso.length === 0) as timeIndex}
                 <tr class="hover:bg-gray-50 transition-colors">
                   <td class="p-4 border-b border-gray-200 font-medium">
                     {#if corso.length > 1}
-                      {timeIndex+2}° - {timeIndex+1 + corso.length}°
+                      {getHourLabel(timeIndex)} - {getHourLabel(timeIndex + corso.length - 1)}
                     {:else}
-                      {timeIndex + 2}°
+                      {getHourLabel(timeIndex)}
                     {/if}
                   </td>
                   {#each days as _, dayIndex}

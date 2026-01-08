@@ -7,7 +7,16 @@ import {
   text,
   integer,
   boolean,
+  jsonb,
 } from "drizzle-orm/pg-core";
+
+// Site configuration table - stores all customizable settings
+export const siteConfig = pgTable("site_config", {
+  id: serial("id").primaryKey(),
+  key: varchar("key", { length: 100 }).notNull().unique(),
+  value: jsonb("value").notNull(),
+  description: text("description"),
+});
 
 export const professori = pgTable("professori", {
   id: serial("id").primaryKey(),
