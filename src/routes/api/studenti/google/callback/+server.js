@@ -2,6 +2,7 @@ import { json, redirect } from '@sveltejs/kit';
 import { OAuth2Client } from 'google-auth-library';
 import { db } from '$lib/db/db';
 import { studenti } from '$lib/db/models';
+import { count } from 'drizzle-orm';
 
 const client = new OAuth2Client(
   process.env.GOOGLE_CLIENT_ID,
@@ -25,12 +26,18 @@ export async function GET({ url, cookies }) {
   const email = payload.email;
   const name = payload.name;
   const googleId = payload.sub;
+
+  // Check if this is the first user - make them admin
+  const userCount = await db.select({ count: count() }).from(studenti);
+  const isFirstUser = userCount[0].count === 0;
+
   // Insert or update user
   await db.insert(studenti).values({
     nomeCompleto: name,
     email,
     hashedPass: 'google_sso',
-    googleId
+    googleId,
+    admin: isFirstUser,
   }).onConflictDoUpdate({
     target: studenti.googleId,
     set: { nomeCompleto: name, email }

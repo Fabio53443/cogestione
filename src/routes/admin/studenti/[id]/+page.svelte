@@ -6,6 +6,7 @@
   let corsi = [];
   let loading = true;
   let error = null;
+  let togglingAdmin = false;
 
   // Get enabled days from config (same as student dashboard)
   $: giorni = siteConfig?.days?.filter(d => d.enabled).map(d => d.name) || ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì'];
@@ -69,6 +70,27 @@
     loading = false;
   }
 
+  async function toggleAdminStatus() {
+    if (togglingAdmin) return;
+    togglingAdmin = true;
+    try {
+      const response = await fetch('/api/admin/admin-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: studentId })
+      });
+      const result = await response.json();
+      if (result.success) {
+        student.admin = result.newStatus;
+      } else {
+        alert(result.message);
+      }
+    } catch (e) {
+      alert('Errore nel cambio stato admin');
+    }
+    togglingAdmin = false;
+  }
+
   loadStudent();
 </script>
 
@@ -113,8 +135,26 @@
         </div>
       </div>
 
+      <!-- Admin Actions -->
+      <div class="flex flex-wrap gap-3 pt-4 border-t border-gray-700/50 mt-4">
+        <button
+          on:click={toggleAdminStatus}
+          disabled={togglingAdmin}
+          class="flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-colors {student.admin ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30' : 'bg-purple-500/20 text-purple-400 hover:bg-purple-500/30'} disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {#if togglingAdmin}
+            <div class="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent"></div>
+          {:else}
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+            </svg>
+          {/if}
+          {student.admin ? 'Rimuovi Admin' : 'Promuovi ad Admin'}
+        </button>
+      </div>
+
       <!-- Schedule Status Summary -->
-      <div class="flex flex-wrap gap-3 pt-4 border-t border-gray-700/50">
+      <div class="flex flex-wrap gap-3 pt-4 border-t border-gray-700/50 mt-4">
         {#if holesCount === 0}
           <div class="flex items-center gap-2 bg-green-500/10 text-green-400 px-4 py-2 rounded-xl">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
