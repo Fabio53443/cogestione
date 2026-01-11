@@ -77,3 +77,14 @@ export const iscrizioni = pgTable("iscrizioni", {
     .references(() => corsi.id),
   presente: boolean("presente").notNull().default(false),
 });
+
+// Notifications/Alerts table - admin announcements
+export const notifications = pgTable("notifications", {
+  id: serial("id").primaryKey(),
+  title: varchar("title", { length: 255 }).notNull(),
+  message: text("message").notNull(),
+  type: varchar("type", { length: 20 }).notNull().default("info"), // info, warning, error, success
+  visibility: varchar("visibility", { length: 20 }).notNull().default("all"), // everyone, signed_in, studenti, docenti
+  active: boolean("active").notNull().default(true),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+});

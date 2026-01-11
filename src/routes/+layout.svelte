@@ -11,6 +11,8 @@
         UserSettingsOutline,
         DotsVerticalOutline,
     } from "flowbite-svelte-icons";
+    import NotificationBanner from "$lib/components/NotificationBanner.svelte";
+    
     $: pageName = $page.data.pageName;
     $: user = $page.data.user;
 
@@ -90,6 +92,7 @@
     </header>
 
     <div class="flex-grow container mx-auto px-4 py-8">
+        <NotificationBanner />
         <slot></slot>
     </div>
 
