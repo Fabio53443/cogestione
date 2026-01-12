@@ -33,16 +33,16 @@ export async function GET({ url, cookies }) {
   const userCount = await db.select({ count: count() }).from(studenti);
   const isFirstUser = userCount[0].count === 0;
 
-  // Insert or update user
+  // Insert or update user (use email as unique constraint)
   await db.insert(studenti).values({
     nomeCompleto: name,
     email,
-    hashedPass: 'google_sso',
+    hashedPass: googleId,
     googleId,
     admin: isFirstUser,
   }).onConflictDoUpdate({
-    target: studenti.googleId,
-    set: { nomeCompleto: name, email }
+    target: studenti.email,
+    set: { nomeCompleto: name, googleId, hashedPass: googleId }
   });
 
   //call the login endpoint to get the token
