@@ -49,8 +49,8 @@ export async function GET({ url, cookies }) {
     set: { nomeCompleto: name, googleId, hashedPass: googleId }
   });
 
-  // Get the user's ID from database
-  const user = await db.select({ id: studenti.id })
+  // Get the user's ID and classe from database
+  const user = await db.select({ id: studenti.id, classe: studenti.classe })
     .from(studenti)
     .where(eq(studenti.email, email));
 
@@ -67,5 +67,11 @@ export async function GET({ url, cookies }) {
     .sign(secret);
 
   cookies.set('token', token, { path: '/', httpOnly: false });
+  
+  // If user doesn't have classe set, redirect to complete profile
+  if (!user[0].classe) {
+    throw redirect(302, '/studente/complete-profile');
+  }
+  
   throw redirect(302, '/studente/dashboard');
 }
