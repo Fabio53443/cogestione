@@ -6,12 +6,18 @@
 
   let selectedStudents = new Set();
   let selectAll = false;
+  let searchQuery = '';
+
+  $: filteredStudents = students.filter(s => 
+    s.studentName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    s.studentEmail?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   function toggleSelectAll() {
     selectAll = !selectAll;
     selectedStudents.clear();
     if (selectAll) {
-      students.forEach(student => selectedStudents.add(student.id));
+      filteredStudents.forEach(student => selectedStudents.add(student.id));
     }
     selectedStudents = selectedStudents;
   }
@@ -22,7 +28,7 @@
     } else {
       selectedStudents.add(studentId);
     }
-    selectAll = selectedStudents.size === students.length;
+    selectAll = selectedStudents.size === filteredStudents.length;
     selectedStudents = selectedStudents;
   }
 
@@ -77,118 +83,153 @@
       window.location.href = `mailto:?bcc=${selectedEmails}`;
     }
   }
+
+  $: presentCount = students.filter(s => s.presente).length;
+  $: absentCount = students.length - presentCount;
 </script>
 
 {#if show}
-<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-  <div class="bg-white rounded-lg max-w-6xl w-full shadow-lg">
-    <!-- Header Bar -->
-    <div class="flex items-center justify-between px-6 py-3 border-b bg-gray-50">
-      <h2 class="text-xl font-bold text-gray-800">Appello</h2>
-      <div class="flex items-center gap-3">
-        <div class="flex gap-2">
-          <button
-            class="px-3 py-1.5 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200 disabled:opacity-50 flex items-center gap-1"
-            disabled={selectedStudents.size === 0}
-            on:click={composeMassEmail}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-            </svg>
-            Email ({selectedStudents.size})
-          </button>
-          <button
-            class="px-3 py-1.5 text-sm bg-green-100 text-green-700 rounded hover:bg-green-200 disabled:opacity-50"
-            disabled={selectedStudents.size === 0}
-            on:click={() => massUpdateAttendance(true)}
-          >
-            Present
-          </button>
-          <button
-            class="px-3 py-1.5 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200 disabled:opacity-50"
-            disabled={selectedStudents.size === 0}
-            on:click={() => massUpdateAttendance(false)}
-          >
-            Absent
-          </button>
+<!-- svelte-ignore a11y-click-events-have-key-events -->
+<!-- svelte-ignore a11y-no-static-element-interactions -->
+<div 
+  class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+  on:click|self={onClose}
+>
+  <div class="bg-[#252536] rounded-2xl max-w-4xl w-full shadow-2xl border border-gray-700/50 max-h-[90vh] flex flex-col">
+    <!-- Header -->
+    <div class="flex items-center justify-between px-6 py-4 border-b border-gray-700/50">
+      <div>
+        <h2 class="text-xl font-bold text-white">Appello</h2>
+        <p class="text-sm text-gray-400 mt-0.5">{students.length} studenti iscritti</p>
+      </div>
+      <button 
+        on:click={onClose}
+        class="text-gray-400 hover:text-white p-2 hover:bg-gray-700/50 rounded-lg transition-colors"
+        aria-label="Close"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Stats & Actions Bar -->
+    <div class="px-6 py-3 border-b border-gray-700/50 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+      <!-- Stats -->
+      <div class="flex gap-3">
+        <div class="flex items-center gap-2 bg-green-500/10 text-green-400 px-3 py-1.5 rounded-lg text-sm">
+          <span class="w-2 h-2 rounded-full bg-green-500"></span>
+          {presentCount} presenti
         </div>
-        <button 
-          on:click={onClose}
-          class="text-gray-500 hover:text-gray-700"
-          aria-label="Close"
+        <div class="flex items-center gap-2 bg-red-500/10 text-red-400 px-3 py-1.5 rounded-lg text-sm">
+          <span class="w-2 h-2 rounded-full bg-red-500"></span>
+          {absentCount} assenti
+        </div>
+      </div>
+      
+      <!-- Actions -->
+      <div class="flex gap-2">
+        <button
+          class="px-3 py-1.5 text-sm bg-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500/30 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5 transition-colors"
+          disabled={selectedStudents.size === 0}
+          on:click={composeMassEmail}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
           </svg>
+          Email ({selectedStudents.size})
+        </button>
+        <button
+          class="px-3 py-1.5 text-sm bg-green-500/20 text-green-400 rounded-lg hover:bg-green-500/30 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          disabled={selectedStudents.size === 0}
+          on:click={() => massUpdateAttendance(true)}
+        >
+          ✓ Presenti
+        </button>
+        <button
+          class="px-3 py-1.5 text-sm bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          disabled={selectedStudents.size === 0}
+          on:click={() => massUpdateAttendance(false)}
+        >
+          ✗ Assenti
         </button>
       </div>
     </div>
 
+    <!-- Search -->
+    <div class="px-6 py-3 border-b border-gray-700/50">
+      <div class="relative">
+        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+        <input
+          type="text"
+          placeholder="Cerca studente..."
+          bind:value={searchQuery}
+          class="w-full bg-[#1e1e2e] border border-gray-700 rounded-xl py-2 pl-10 pr-4 text-white placeholder-gray-500 focus:outline-none focus:border-[#FB773C] transition-colors"
+        />
+      </div>
+    </div>
+
     <!-- Table Header -->
-    <div class="grid grid-cols-12 gap-4 px-6 py-3 bg-gray-100 text-sm font-medium text-gray-600">
+    <div class="grid grid-cols-12 gap-4 px-6 py-3 bg-[#1e1e2e] text-xs font-medium text-gray-400 uppercase tracking-wider">
       <div class="col-span-1">
         <input
           type="checkbox"
           checked={selectAll}
           on:change={toggleSelectAll}
-          class="w-4 h-4 rounded border-gray-300"
+          class="w-4 h-4 rounded border-gray-600 bg-[#252536] text-[#FB773C] focus:ring-[#FB773C] focus:ring-offset-0"
         />
       </div>
-      <div class="col-span-3">Name</div>
-      <div class="col-span-2">Class</div>
-      <div class="col-span-4">Email</div>
-      <div class="col-span-2">Status</div>
+      <div class="col-span-4">Nome</div>
+      <div class="col-span-5">Email</div>
+      <div class="col-span-2">Stato</div>
     </div>
 
     <!-- Student List -->
-    <div class="max-h-[calc(100vh-220px)] overflow-y-auto">
-      {#each students as student (student.id)}
-        <div class="grid grid-cols-12 gap-4 px-6 py-2.5 border-b hover:bg-gray-50 items-center text-sm">
+    <div class="flex-1 overflow-y-auto">
+      {#each filteredStudents as student (student.id)}
+        <div class="grid grid-cols-12 gap-4 px-6 py-3 border-b border-gray-700/30 hover:bg-[#1e1e2e]/50 items-center transition-colors">
           <div class="col-span-1">
             <input
               type="checkbox"
               checked={selectedStudents.has(student.id)}
               on:change={() => toggleSelect(student.id)}
-              class="w-4 h-4 rounded border-gray-300"
+              class="w-4 h-4 rounded border-gray-600 bg-[#252536] text-[#FB773C] focus:ring-[#FB773C] focus:ring-offset-0"
             />
           </div>
-          <div class="col-span-3 font-medium text-gray-900">
-            {student.studentName || 'N/A'}
-          </div>
-          <div class="col-span-2">
-            {student.classe || '—'}
-          </div>
           <div class="col-span-4">
+            <span class="font-medium text-white">{student.studentName || 'N/A'}</span>
+          </div>
+          <div class="col-span-5 truncate">
             {#if student.studentEmail}
               <a 
                 href="mailto:{student.studentEmail}" 
-                class="text-blue-600 hover:text-blue-800 hover:underline"
+                class="text-gray-400 hover:text-[#FB773C] transition-colors text-sm"
               >
                 {student.studentEmail}
               </a>
             {:else}
-              <span class="text-gray-400">No email provided</span>
+              <span class="text-gray-600 text-sm">Nessuna email</span>
             {/if}
           </div>
           <div class="col-span-2">
             <button
-              class="px-3 py-1.5 rounded-full text-sm font-medium transition-colors duration-200 flex items-center gap-1.5"
-              class:bg-green-100={student.presente}
-              class:text-green-700={student.presente}
-              class:hover:bg-green-200={student.presente}
-              class:bg-red-100={!student.presente}
-              class:text-red-700={!student.presente}
-              class:hover:bg-red-200={!student.presente}
+              class="px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 flex items-center gap-1.5 {student.presente ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30' : 'bg-red-500/20 text-red-400 hover:bg-red-500/30'}"
               on:click={() => toggleAttendance(student)}
             >
-              <span 
-                class="h-1.5 w-1.5 rounded-full" 
-                class:bg-green-500={student.presente}
-                class:bg-red-500={!student.presente}
-              />
-              {student.presente ? 'Present' : 'Absent'}
+              <span class="h-2 w-2 rounded-full {student.presente ? 'bg-green-400' : 'bg-red-400'}"></span>
+              {student.presente ? 'Presente' : 'Assente'}
             </button>
           </div>
+        </div>
+      {:else}
+        <div class="px-6 py-8 text-center text-gray-500">
+          {#if searchQuery}
+            Nessuno studente trovato per "{searchQuery}"
+          {:else}
+            Nessuno studente iscritto
+          {/if}
         </div>
       {/each}
     </div>

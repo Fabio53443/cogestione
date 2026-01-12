@@ -7,7 +7,16 @@ import {
   text,
   integer,
   boolean,
+  jsonb,
 } from "drizzle-orm/pg-core";
+
+// Site configuration table - stores all customizable settings
+export const siteConfig = pgTable("site_config", {
+  id: serial("id").primaryKey(),
+  key: varchar("key", { length: 100 }).notNull().unique(),
+  value: jsonb("value").notNull(),
+  description: text("description"),
+});
 
 export const professori = pgTable("professori", {
   id: serial("id").primaryKey(),
@@ -20,9 +29,11 @@ export const studenti = pgTable("studenti", {
   id: serial("id").primaryKey(),
   nomeCompleto: varchar("nome_completo", { length: 255 }).notNull(),
   email: varchar("email", { length: 255 }).notNull().unique(),
+  classe: varchar("classe", { length: 20 }),
   hashedPass: text("hashed_pass").notNull(),
+  googleId: text("google_id"),
   admin: boolean("admin").notNull().default(false),
-  classe: varchar("classe", { length: 10 }),
+  sdo: boolean("sdo").notNull().default(false),
 });
 
 export const corsi = pgTable("corsi", {
@@ -45,12 +56,13 @@ export const corsi = pgTable("corsi", {
     .array()
     .default(
       sql`ARRAY[
-      ARRAY[0, 0], 
-      ARRAY[0, 0], 
-      ARRAY[0, 0], 
-      ARRAY[0, 0]
+      ARRAY[0, 0, 0, 0, 0, 0, 0], 
+      ARRAY[0, 0, 0, 0, 0, 0, 0], 
+      ARRAY[0, 0, 0, 0, 0, 0, 0], 
+      ARRAY[0, 0, 0, 0, 0, 0, 0], 
+      ARRAY[0, 0, 0, 0, 0, 0, 0]
 ]::integer[][]`
-    ),
+    ),  
 });
 
 export const iscrizioni = pgTable("iscrizioni", {
@@ -64,4 +76,15 @@ export const iscrizioni = pgTable("iscrizioni", {
     .notNull()
     .references(() => corsi.id),
   presente: boolean("presente").notNull().default(false),
+});
+
+// Notifications/Alerts table - admin announcements
+export const notifications = pgTable("notifications", {
+  id: serial("id").primaryKey(),
+  title: varchar("title", { length: 255 }).notNull(),
+  message: text("message").notNull(),
+  type: varchar("type", { length: 20 }).notNull().default("info"), // info, warning, error, success
+  visibility: varchar("visibility", { length: 20 }).notNull().default("all"), // everyone, signed_in, studenti, docenti
+  active: boolean("active").notNull().default(true),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });

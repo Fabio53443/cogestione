@@ -21,7 +21,6 @@ export async function GET({ params, url }) {
     const student = await db.select({
         nomeCompleto: studenti.nomeCompleto,
         email: studenti.email,
-        classe: studenti.classe
     })
     .from(studenti)
     .where(eq(studenti.id, attendance[i].idStudente))
@@ -29,7 +28,6 @@ export async function GET({ params, url }) {
 
     attendance[i].studentName = student[0].nomeCompleto;
     attendance[i].studentEmail = student[0].email;
-    attendance[i].classe = student[0].classe;
   }
   return json(attendance);
 }
@@ -46,7 +44,6 @@ export async function PUT({ params, request }) {
   const student = await db.select({
       nomeCompleto: studenti.nomeCompleto,
       email: studenti.email,
-      classe: studenti.classe
   })
   .from(studenti)
   .where(eq(studenti.id, updated[0].idStudente))
@@ -54,6 +51,5 @@ export async function PUT({ params, request }) {
 
   updated[0].studentName = student[0].nomeCompleto;
   updated[0].studentEmail = student[0].email;
-  updated[0].classe = student[0].classe;
   return json(updated[0]);
 }

@@ -1,25 +1,15 @@
 <script>
     import Alert from "$lib/components/Alert.svelte";
-    import { onMount } from "svelte";
 
     let showAlert = false;
     let alertMessage = "";
     let alertType = "info";
-    let emailInput = "";
-    let emailInputElement;
-
-    $: fullEmail = emailInput;
-
-    onMount(() => {
-        if (emailInputElement) {
-            emailInputElement.addEventListener("input", handleEmailInput);
-        }
-    });
 
     const handleRegister = async (event) => {
         event.preventDefault();
 
         const nome = event.target.elements.nome.value;
+        const email = event.target.elements.email.value;
         const password = event.target.elements.password.value;
         const classe = event.target.elements.classe.value;
 
@@ -31,7 +21,7 @@
                 },
                 body: JSON.stringify({
                     nome,
-                    email: fullEmail,
+                    email,
                     password,
                     classe,
                 }),
@@ -41,116 +31,98 @@
 
             if (result.success) {
                 alertType = "success";
-                alertMessage = "Registration successful!";
+                alertMessage = "Registrazione completata! Ora puoi accedere.";
+                showAlert = true;
+                // Redirect to login after a short delay
+                setTimeout(() => {
+                    window.location.href = "/login";
+                }, 1500);
             } else {
                 alertType = "error";
-                alertMessage = result.message || "Registration failed.";
+                alertMessage = result.message || "Registrazione fallita.";
+                showAlert = true;
             }
         } catch (error) {
             alertType = "error";
-            alertMessage = "An unexpected error occurred.";
-        } finally {
+            alertMessage = "Si è verificato un errore.";
             showAlert = true;
         }
     };
-
-    const handleEmailInput = (event) => {
-        emailInput = event.target.value.replace(suffix, "");
-    };
 </script>
 
-<!-- Use the alert component -->
 <Alert type={alertType} message={alertMessage} show={showAlert} />
 
-<div
-    class="container mx-auto flex flex-col items-center justify-start pt-16 px-4"
->
-    <h1 class="text-3xl font-bold text-center text-[#FB773C] mb-8">
-        Registrati
-    </h1>
+<div class="min-h-[70vh] flex items-center justify-center px-4">
     <div class="w-full max-w-md">
-        <form
-            on:submit={handleRegister}
-            class="bg-white shadow-md rounded-lg px-8 pt-6 pb-8 mb-4"
-        >
-        <div class="mb-4">
-                
-            <label
-                class="block text-gray-700 text-sm font-bold mb-2"
-                for="nome"
-            >
-                Nome completo
-            </label>
-            <input
-                class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-[#EB3678]"
-                id="nome"
-                type="text"
-                name="nome"
-                placeholder="Nome utente"
-                required
-            />
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-white mb-2">Crea account</h1>
+            <p class="text-gray-400">Registrati per accedere ai corsi</p>
         </div>
-        <div class="mb-4">
-                
-            <label
-                class="block text-gray-700 text-sm font-bold mb-2"
-                for="nome"
-            >
-                Classe
-            </label>
-            <input
-                class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-[#EB3678]"
-                id="classe"
-                type="text"
-                name="classe"
-                placeholder="es. 4E"
-                required
-            />
-        </div>
-    <div class="mb-4">
-                <label
-                    class="block text-gray-700 text-sm font-bold mb-2"
-                    for="email"
-                >
-                    Email
-                </label>
-                <div class="relative">
+        
+        <div class="bg-[#252536] rounded-2xl p-6 md:p-8 border border-gray-700/50">
+            <form on:submit={handleRegister} class="space-y-5">
+                <div>
+                    <label class="block text-gray-300 text-sm font-medium mb-2" for="nome">
+                        Nome completo
+                    </label>
                     <input
-                        bind:this={emailInputElement}
-                        class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-[#EB3678]"
-                        id="email"
+                        class="w-full bg-[#1e1e2e] border border-gray-600 rounded-xl py-3 px-4 text-white placeholder-gray-500 focus:outline-none focus:border-[#FB773C] focus:ring-1 focus:ring-[#FB773C] transition-colors"
+                        id="nome"
                         type="text"
-                        name="email"
-                        placeholder="Email"
+                        name="nome"
+                        placeholder="Mario Rossi"
                         required
-                        bind:value={emailInput}
                     />
                 </div>
-            </div>
-            <div class="mb-6">
-                <label
-                    class="block text-gray-700 text-sm font-bold mb-2"
-                    for="password"
-                >
-                    Password
-                </label>
-                <input
-                    class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline focus:border-[#EB3678]"
-                    id="password"
-                    type="password"
-                    name="password"
-                    placeholder="******************"
-                    required
-                />
-            </div>
-            <div class="flex items-center justify-between">
+                <div>
+                    <label class="block text-gray-300 text-sm font-medium mb-2" for="classe">
+                        Classe
+                    </label>
+                    <input
+                        class="w-full bg-[#1e1e2e] border border-gray-600 rounded-xl py-3 px-4 text-white placeholder-gray-500 focus:outline-none focus:border-[#FB773C] focus:ring-1 focus:ring-[#FB773C] transition-colors"
+                        id="classe"
+                        type="text"
+                        name="classe"
+                        placeholder="5A"
+                    />
+                </div>
+                <div>
+                    <label class="block text-gray-300 text-sm font-medium mb-2" for="email">
+                        Email
+                    </label>
+                    <input
+                        class="w-full bg-[#1e1e2e] border border-gray-600 rounded-xl py-3 px-4 text-white placeholder-gray-500 focus:outline-none focus:border-[#FB773C] focus:ring-1 focus:ring-[#FB773C] transition-colors"
+                        id="email"
+                        type="email"
+                        name="email"
+                        placeholder="email@esempio.com"
+                        required
+                    />
+                </div>
+                <div>
+                    <label class="block text-gray-300 text-sm font-medium mb-2" for="password">
+                        Password
+                    </label>
+                    <input
+                        class="w-full bg-[#1e1e2e] border border-gray-600 rounded-xl py-3 px-4 text-white placeholder-gray-500 focus:outline-none focus:border-[#FB773C] focus:ring-1 focus:ring-[#FB773C] transition-colors"
+                        id="password"
+                        type="password"
+                        name="password"
+                        placeholder="••••••••"
+                        required
+                    />
+                </div>
                 <button
-                    class="bg-[#FB773C] hover:bg-[#EB3678] text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline w-full transition duration-200"
+                    class="w-full bg-[#FB773C] hover:bg-[#EB3678] text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 hover:shadow-lg hover:shadow-[#FB773C]/20 mt-2"
                     type="submit"
                 >
                     Registrati
                 </button>
-            </div>
-        </form>
+            </form>
+        </div>
+        
+        <p class="text-center text-gray-400 text-sm mt-6">
+            Hai già un account? <a href="/login" class="text-[#FB773C] hover:text-[#EB3678] font-medium">Accedi</a>
+        </p>
     </div>
 </div>

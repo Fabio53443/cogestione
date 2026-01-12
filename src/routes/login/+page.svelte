@@ -7,7 +7,7 @@
 
     const handleLogin = async (event) => {
         event.preventDefault();
-        const username = event.target.elements.username.value;
+        const username = event.target.elements.email.value;
         const password = event.target.elements.password.value;
         try {
             const response = await fetch("/api/studenti/login", {
@@ -22,7 +22,7 @@
 
             if (result.success) {
                 alertType = "success";
-                alertMessage = "Login successful!";
+                alertMessage = "Login effettuato!";
                 Cookies.set("token", result.token, {
                     expires: 7,
                     secure: true,
@@ -31,11 +31,11 @@
                 window.location.href = "/studente/dashboard";
             } else {
                 alertType = "error";
-                alertMessage = result.message || "Login failed.";
+                alertMessage = result.message || "Login fallito.";
             }
         } catch (error) {
             alertType = "error";
-            alertMessage = "An unexpected error occurred.";
+            alertMessage = "Si è verificato un errore.";
         } finally {
             showAlert = true;
         }
@@ -44,65 +44,52 @@
 
 <Alert type={alertType} message={alertMessage} show={showAlert} />
 
-<div
-    class="container mx-auto flex flex-col items-center justify-start pt-16 px-4"
->
-    <h1 class="text-3xl font-bold text-center text-[#FB773C] mb-8">Accedi</h1>
+<div class="min-h-[70vh] flex items-center justify-center px-4">
     <div class="w-full max-w-md">
-        <form
-            on:submit={handleLogin}
-            class="bg-white shadow-md rounded-lg px-8 pt-6 pb-8 mb-4"
-        >
-            <div class="mb-4">
-                <label
-                    class="block text-gray-700 text-sm font-bold mb-2"
-                    for="username"
-                >
-                    Email
-                </label>
-                <div class="relative">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-white mb-2">Bentornato</h1>
+            <p class="text-gray-400">Accedi al tuo account</p>
+        </div>
+        
+        <div class="bg-[#252536] rounded-2xl p-6 md:p-8 border border-gray-700/50">
+            <form on:submit={handleLogin} class="space-y-5">
+                <div>
+                    <label class="block text-gray-300 text-sm font-medium mb-2" for="email">
+                        Email
+                    </label>
                     <input
-                        class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-[#EB3678]"
-                        id="username"
-                        type="text"
-                        name="username"
-                        placeholder="Email"
+                        class="w-full bg-[#1e1e2e] border border-gray-600 rounded-xl py-3 px-4 text-white placeholder-gray-500 focus:outline-none focus:border-[#FB773C] focus:ring-1 focus:ring-[#FB773C] transition-colors"
+                        id="email"
+                        type="email"
+                        name="email"
+                        placeholder="email@esempio.com"
                         required
                     />
                 </div>
-            </div>
-            <div class="mb-6">
-                <label
-                    class="block text-gray-700 text-sm font-bold mb-2"
-                    for="password"
-                >
-                    Password
-                </label>
-                <input
-                    class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline focus:border-[#EB3678]"
-                    id="password"
-                    type="password"
-                    name="password"
-                    placeholder="******************"
-                    required
-                />
-            </div>
-            <div class="flex items-center justify-between">
+                <div>
+                    <label class="block text-gray-300 text-sm font-medium mb-2" for="password">
+                        Password
+                    </label>
+                    <input
+                        class="w-full bg-[#1e1e2e] border border-gray-600 rounded-xl py-3 px-4 text-white placeholder-gray-500 focus:outline-none focus:border-[#FB773C] focus:ring-1 focus:ring-[#FB773C] transition-colors"
+                        id="password"
+                        type="password"
+                        name="password"
+                        placeholder="••••••••"
+                        required
+                    />
+                </div>
                 <button
-                    class="bg-[#FB773C] hover:bg-[#EB3678] text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline w-full transition duration-200"
+                    class="w-full bg-[#FB773C] hover:bg-[#EB3678] text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 hover:shadow-lg hover:shadow-[#FB773C]/20 mt-2"
                     type="submit"
                 >
                     Accedi
                 </button>
-            </div>
-            <div class="flex items-center justify-between">
-                <p class="text-gray-600 text-sm mt-4 text-center"
-                    
-                >
-                    Non sei ancora registrato? Fallo qui: <a href="/register" class="text-[#FB773C] hover:text-[#FB773C] transition duration-200 font-semibold ">Registrati</a>
-            </p>
-            </div>
-            
-        </form>
+            </form>
+        </div>
+        
+        <p class="text-center text-gray-400 text-sm mt-6">
+            Non hai un account? <a href="/register" class="text-[#FB773C] hover:text-[#EB3678] font-medium">Registrati</a>
+        </p>
     </div>
 </div>

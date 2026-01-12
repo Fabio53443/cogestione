@@ -1,11 +1,12 @@
 import { db } from '$lib/db/db';
 import { corsi } from '$lib/db/models';
 import { eq } from 'drizzle-orm';
+import { redirect } from '@sveltejs/kit';
 
 export async function load({ params, locals }) {
   const courseId = parseInt(params.id, 10);
-  if (!locals.user) {
-    return { corso: null, error: 'Utente non autenticato' };
+  if (!locals.user || locals.user.role !== 'docente') {
+    throw redirect(302, '/');
   }
 
   const [course] = await db

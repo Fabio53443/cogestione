@@ -2,8 +2,20 @@ import { json } from '@sveltejs/kit';
 import { db } from '$lib/db/db';
 import { iscrizioni, corsi } from '$lib/db/models';
 import { eq, and } from 'drizzle-orm';
+import { getConfig } from '$lib/config';
 
 export const POST = async ({ locals, request }) => {
+  // Check if registration is open
+  const config = await getConfig();
+  if (!config.registrationOpen) {
+    return json({ success: false, message: 'Le iscrizioni sono chiuse.' }, { status: 401 });
+  }
+  
+  // Check deadline
+  if (config.registrationDeadline && new Date() > new Date(config.registrationDeadline)) {
+    return json({ success: false, message: 'Il termine per le iscrizioni è scaduto.' }, { status: 401 });
+  }
+
   try {
     if (!locals.user || locals.user.role !== 'studente') {
       return json({ success: false, message: 'Unauthorized.' }, { status: 401 });
@@ -22,9 +34,16 @@ export const POST = async ({ locals, request }) => {
     }
 
     const courseLength = course[0].length;
+    const enabledHours = config.hours.filter(h => h.enabled);
+    const numHours = enabledHours.length;
 
     // Check for overlapping courses
     for (let i = 0; i < courseLength; i++) {
+      // Check if the hour is within bounds
+      if (ora + i >= numHours) {
+        return json({ success: false, message: 'Il corso non può essere prenotato in questo orario.' }, { status: 400 });
+      }
+      
       const conflictingEnrollment = await db.select().from(iscrizioni).where(
         and(
           eq(iscrizioni.idStudente, locals.user.id),
@@ -65,6 +84,17 @@ export const POST = async ({ locals, request }) => {
 };
 
 export const DELETE = async ({ locals, request }) => {
+  // Check if registration is open
+  const config = await getConfig();
+  if (!config.registrationOpen) {
+    return json({ success: false, message: 'Le iscrizioni sono chiuse.' }, { status: 401 });
+  }
+  
+  // Check deadline
+  if (config.registrationDeadline && new Date() > new Date(config.registrationDeadline)) {
+    return json({ success: false, message: 'Il termine per le iscrizioni è scaduto.' }, { status: 401 });
+  }
+
   try {
     if (!locals.user || locals.user.role !== 'studente') {
       return json({ success: false, message: 'Unauthorized.' }, { status: 401 });
@@ -120,4 +150,3 @@ export const DELETE = async ({ locals, request }) => {
     return json({ success: false, message: 'Unenrollment failed.' }, { status: 500 });
   }
 };
-

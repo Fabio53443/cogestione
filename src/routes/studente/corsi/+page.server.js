@@ -4,10 +4,9 @@ import { eq, sql } from 'drizzle-orm';
 import { corsi, iscrizioni, professori } from '$lib/db/models';
 
 export async function load({ locals }) {
-  if (!locals.user) {
-    throw redirect(302, '/login');
+  if (!locals.user || locals.user.role !== 'studente') {
+    throw redirect(302, '/');
   }
-
   try {
     // Get student's current enrollments
     const currentEnrollments = await db
@@ -54,7 +53,8 @@ export async function load({ locals }) {
         docenteNome: `${docente.nome} ${docente.cognome}`,
         iscritto: enrolledCourseIds.includes(corso.id),
         giorno: enrolledInfo?.giorno ?? null,
-        ora: enrolledInfo?.ora ?? null
+        ora: enrolledInfo?.ora ?? null,
+        availability: corso.availability // Add this line
       };
     });
 

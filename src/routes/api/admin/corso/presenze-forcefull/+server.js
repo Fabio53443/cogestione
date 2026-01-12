@@ -30,17 +30,13 @@ export async function POST({ request, locals }) {
       .from(corsi)
       .where(eq(corsi.id, id))
       .limit(1);
-      console.log(corso);
 
     if (!corso[0]) {
       return json({ success: false, message: 'Course not found' }, { status: 404 });
     }
 
     let schedule = corso[0].schedule;
-    console.log(schedule);
    schedule[dayIndex][timeIndex] = 0;
-    console.log(schedule);
-
     // Update the course schedule
     await db.update(corsi).set({ schedule }).where(eq(corsi.id, id));
   

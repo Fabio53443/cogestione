@@ -2,11 +2,14 @@ import { redirect } from '@sveltejs/kit';
 import { db } from '$lib/db/db.js';
 import { eq } from 'drizzle-orm';
 import { corsi, iscrizioni, professori } from '$lib/db/models.js';
+import { getConfig } from '$lib/config';
 
 export async function load({ locals }) {
-  if (!locals.user) {
-    throw redirect(302, '/login');
+  if (!locals.user || locals.user.role !== 'studente') {
+    throw redirect(302, '/');
   }
+
+  const config = await getConfig();
 
   try {
     // Get all courses the student is enrolled in
@@ -15,14 +18,15 @@ export async function load({ locals }) {
         corso: corsi,
         docente: professori, 
         ora: iscrizioni.ora,
-        giorno: iscrizioni.giorno
+        giorno: iscrizioni.giorno,
+        presente: iscrizioni.presente
       })
       .from(iscrizioni)
       .where(eq(iscrizioni.idStudente, locals.user.id))
       .leftJoin(corsi, eq(iscrizioni.idCorso, corsi.id))
       .leftJoin(professori, eq(corsi.docente, professori.id));
 
-    const corsiIscritto = userIscrizioni.map(({ corso, docente, ora, giorno }) => ({
+    const corsiIscritto = userIscrizioni.map(({ corso, docente, ora, giorno, presente }) => ({
       id: corso.id,
       uniqueKey: `${corso.id}-${giorno}-${ora}`, // Add this field for unique keying
       nome: corso.nome,
@@ -30,11 +34,13 @@ export async function load({ locals }) {
       aula: corso.aula,
       ora: ora,
       giorno: giorno,
+      presente: presente,
     }));
     return {
       pageName: 'Dashboard studente',
       user: locals.user,
-      corsi: corsiIscritto
+      corsi: corsiIscritto,
+      siteConfig: config
     };
   } catch (error) {
     console.error('Error fetching courses:', error);
@@ -43,7 +49,8 @@ export async function load({ locals }) {
       pageName: 'Dashboard studente',
       user: locals.user,
       corsi: [],
-      error: 'Si è verificato un errore durante il caricamento dei corsi.'
+      error: 'Si è verificato un errore durante il caricamento dei corsi.',
+      siteConfig: config
     };
   }
 }

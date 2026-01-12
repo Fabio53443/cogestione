@@ -4,6 +4,15 @@ import { db } from "$lib/db/db";
 import { studenti, corsi, iscrizioni } from "$lib/db/models";
 import { eq } from "drizzle-orm";
 import { isAdmin } from "$lib/isAdmin";
+import { Readable } from 'stream';
+
+// Add this function at the top level
+function sanitizeFilename(filename) {
+  return filename
+    .replace(/[^\x00-\x7F]/g, '') // Remove non-ASCII characters
+    .replace(/[^a-zA-Z0-9-_\.]/g, '_') // Replace other special chars with underscore
+    .trim();
+}
 
 export async function GET({ params, locals }) {
   if (!locals.user) {
@@ -28,9 +37,9 @@ export async function GET({ params, locals }) {
       // fields from iscrizioni
       giorno: iscrizioni.giorno,
       ora: iscrizioni.ora,
+      present: iscrizioni.presente,
       // fields from studenti
       nomeCompleto: studenti.nomeCompleto,
-      classe: studenti.classe,
       email: studenti.email
     })
     .from(iscrizioni)
@@ -46,48 +55,48 @@ export async function GET({ params, locals }) {
     grouped[giorno][ora].push(item);
   });
 
-  // Create PDF document
-  const doc = new PDFDocument();
-  const chunks = [];
-  doc.on("data", chunk => chunks.push(chunk));
-  const pdfPromise = new Promise(resolve => {
-    doc.on("end", () => resolve(Buffer.concat(chunks)));
-  });
-  // add page number on all pages in footer
-  doc.on("pageAdded", () => {
-    doc.fontSize(8).text(doc.page, 0, doc.page.height - 10, { align: "right" });
-  });
-  // Add course details header
-  doc.fontSize(18).text(course.nome, { underline: true });
-  doc.moveDown();
-  doc.fontSize(12).text(`Descrizione: ${course.descrizione || "N/A"}`);
-  doc.text(`Aula: ${course.aula || "N/A"}`);
-  doc.text(`Capienza: ${course.numPosti || "N/A"}`);
-  doc.moveDown();
-  doc.text("Aggiornato al: " + new Date().toLocaleString("it-IT"));
-  doc.moveDown();
+  // Create PDF document with size limit options
+  const doc = new PDFDocument({ bufferPages: false, size: 'A4' });
+  
+  // Create a readable stream from the PDF
+  const stream = new ReadableStream({
+    start(controller) {
+      doc.on('data', (chunk) => controller.enqueue(chunk));
+      doc.on('end', () => controller.close());
+      doc.on('error', (err) => controller.error(err));
 
-  // Iterate through grouped iscrizioni and add details
-  for (const giorno of Object.keys(grouped).sort((a, b) => a - b)) {
-    doc.fontSize(16).text(`Giorno: ${Number(giorno)+1}`);
-    for (const ora of Object.keys(grouped[giorno]).sort((a, b) => a - b)) {
-      doc.fontSize(14).text(`  Turno: ${Number(ora)+1}`);
-      doc.fontSize(12).text("Nome -- Classe -- Email", { underline: true });
-      grouped[giorno][ora].forEach(item => {
-        doc.text(`    • ${item.nomeCompleto} -- ${item.classe || "-"} -- ${item.email}`);
-      });
+      // Add course details header with sanitized name
+      doc.fontSize(18).text(sanitizeFilename(course.nome), { underline: true });
       doc.moveDown();
+      doc.fontSize(12).text(`Descrizione: ${course.descrizione || "N/A"}`);
+      doc.text(`Aula: ${course.aula || "N/A"}`);
+      doc.text(`Capienza: ${course.numPosti || "N/A"}`);
+      doc.moveDown();
+      doc.text("Aggiornato al: " + new Date().toLocaleString("it-IT"));
+      doc.moveDown();
+
+      // Iterate through grouped iscrizioni and add details
+      for (const giorno of Object.keys(grouped).sort((a, b) => a - b)) {
+        doc.fontSize(16).text(`Giorno: ${Number(giorno)+1}`);
+        for (const ora of Object.keys(grouped[giorno]).sort((a, b) => a - b)) {
+          doc.fontSize(10).text(`  Ora: ${Number(ora)+1}`);
+          grouped[giorno][ora].forEach(item => {
+            doc.text(` • ${item.nomeCompleto}  -- ${item.email}`);
+          });
+          doc.moveDown();
+        }
+        doc.moveDown();
+      }
+
+      // Finalize the PDF
+      doc.end();
     }
-    doc.moveDown();
-  }
+  });
 
-  doc.end();
-  const pdfBuffer = await pdfPromise;
-
-  return new Response(pdfBuffer, {
+  return new Response(stream, {
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": `attachment; filename="${course.nome}.pdf"`
+      "Content-Disposition": `attachment; filename="${sanitizeFilename(course.nome)}.pdf"`
     }
   });
 }

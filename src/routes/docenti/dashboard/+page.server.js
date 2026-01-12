@@ -5,7 +5,7 @@ import { corsi } from '$lib/db/models.js';
 import { afterNavigate } from '$app/navigation';
 
 export async function load({ locals }) {
-  if (!locals.user) {
+  if (!locals.user || locals.user.role !== 'docente') {
     throw redirect(302, '/docenti/login');
   }
 

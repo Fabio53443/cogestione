@@ -8,6 +8,8 @@ export async function load({ params, locals }) {
   if (!(await isAdmin(locals))) {
     throw redirect(302, '/studente/dashboard');
   }   
+  const id = parseInt(params.id, 10);
+  
   const info_docente = await db
     .select({
       nome: professori.nomeCompleto,

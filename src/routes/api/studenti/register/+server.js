@@ -1,31 +1,28 @@
 import { json } from '@sveltejs/kit'; // To send JSON responses
 import { db } from '$lib/db/db'; // Assuming you're using Drizzle ORM for your database
-import bcrypt from 'bcrypt'; // For hashing passwords
+import bcrypt from 'bcryptjs'; // For hashing passwords
 import { studenti } from '$lib/db/models';
+import { count } from 'drizzle-orm';
+
 export const POST = async ({ request }) => {
     try {
         const formData = await request.json();
-        const {  nome, email, password, classe } = formData;
-        console.log('Form Data:', formData);
-        if ( !nome || !email || !password || !classe) {
+        const { nome, email, password, classe } = formData;
+        if ( !nome || !email || !password ) {
             return json({ success: false, message: 'All fields are required.' }, { status: 400 });
         }
 
-        // Log the form data for debugging
-        console.log('Form Data:', formData);
+        // Check if this is the first user - make them admin
+        const userCount = await db.select({ count: count() }).from(studenti);
+        const isFirstUser = userCount[0].count === 0;
 
         const hashedPassword = await bcrypt.hash(password, 10);
-
-        // Log before inserting into the database
-        console.log('Inserting into DB:', { nome, email, hashedPassword });
-
-        // Insert the new user into the database
         await db.insert(studenti).values({
-            
             nomeCompleto: nome,
             email,
-            hashedPass: hashedPassword, 
-            classe,
+            classe: classe || null,
+            hashedPass: hashedPassword,
+            admin: isFirstUser,
         });
 
         return json({ success: true, message: 'User registered successfully!' });

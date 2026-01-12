@@ -4,7 +4,7 @@ import { studenti } from '$lib/db/models';
 import { eq } from 'drizzle-orm';
 import { SignJWT } from 'jose';
 import { TextEncoder } from 'util';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 const secret = new TextEncoder().encode(process.env.JWT_SECRET);
 
@@ -19,27 +19,30 @@ export const POST = async ({ request }) => {
 
         const result = await db.select({
             id: studenti.id,
-            hashedPass: studenti.hashedPass
+            hashedPass: studenti.hashedPass, 
+            nome_completo: studenti.nomeCompleto, 
         })
         .from(studenti)
         .where(eq(studenti.email, username));
 
         if (result.length === 0) {
-            return json({ success: false, message: 'Invalid username or password.' }, { status: 401 });
+            return json({ success: false, message: 'Email o password non validi.' }, { status: 401 });
         }
 
-        if (!bcrypt.compareSync(password, result[0].hashedPass)) {
-            return json({ success: false, message: 'Invalid username or password.' }, { status: 401 });
+        const user = result[0];
+        const isPasswordValid = await bcrypt.compare(password, user.hashedPass);
+
+        if (!isPasswordValid) {
+            return json({ success: false, message: 'Email o password non validi.' }, { status: 401 });
         }
-        const id = result[0].id;
-        const token = await new SignJWT({ username, id , role: 'studente' })
+
+        const token = await new SignJWT({ username, id: user.id, role: 'studente', nome_completo: user.nome_completo })
             .setProtectedHeader({ alg: 'HS256' })
             .setIssuedAt()
-            .setExpirationTime('1h')
+            .setExpirationTime('36h')
             .sign(secret);
-
-        return json({ success: true, token });
         
+        return json({ success: true, token });
     } catch (error) {
         console.error('Login Error:', error);
         return json({ success: false, message: 'Login failed.' }, { status: 500 });

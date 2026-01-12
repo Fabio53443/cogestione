@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit'; // To send JSON responses
 import { db } from '$lib/db/db'; // Assuming you're using Drizzle ORM for your database
-import bcrypt from 'bcrypt'; // For hashing passwords
+import bcrypt from 'bcryptjs'; // For hashing passwords
 import { professori, studenti, iscrizioni, corsi } from '$lib/db/models';
 import { eq } from 'drizzle-orm';
 
@@ -70,7 +70,6 @@ export const DELETE = async ({ request, locals }) => {
   
   try {
     const { id } = await request.json();
-    console.log(id);
     //delete all related iscrizioni for courses taught by the teacher
     const corsiDocente = await db.select().from(corsi).where(eq(corsi.docente, id));
     for (const corso of corsiDocente) {

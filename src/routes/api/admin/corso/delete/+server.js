@@ -21,7 +21,6 @@ export async function POST({ request, locals }) {
   
   try {
     const { id } = await request.json();
-    console.log(id);
     
     const corso = await db.select().from(corsi).where(eq(corsi.id, id));
     // Delete all related registrations first

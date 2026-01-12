@@ -4,7 +4,7 @@ import { professori } from '$lib/db/models';
 import { eq } from 'drizzle-orm';
 import { SignJWT } from 'jose';
 import { TextEncoder } from 'util';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 const secret = new TextEncoder().encode(process.env.JWT_SECRET);
 

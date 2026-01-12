@@ -1,30 +1,36 @@
 <script>
   export let data;
-  const { user, nomeCompleto, classe, email } = data;
-  import { EditOutline } from 'flowbite-svelte-icons';
-
+  const { user, nomeCompleto, email } = data;
 </script>
 
-<div class="container mx-auto flex flex-col items-center justify-start pt-16 px-4">
-  <div class="w-full max-w-md">
-    <div class="flex justify-between items-center mb-8">
-      <h1 class="text-3xl font-bold text-[#FB773C]">Il tuo profilo</h1>
-      <a href="/studente/profile/edit" class="flex items-center bg-[#FB773C] hover:bg-[#EB3678] text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline transition duration-200">
-        Modifica
-        <EditOutline class="w-5 h-5 ml-2 " />
+<div class="max-w-md mx-auto px-4">
+  <h1 class="text-2xl md:text-3xl font-bold text-white mb-8">Profilo</h1>
+  
+  <div class="bg-[#252536] rounded-2xl p-6 border border-gray-700/50">
+    <div class="flex items-center gap-4 mb-6 pb-6 border-b border-gray-700/50">
+      <div class="w-16 h-16 bg-[#FB773C]/20 rounded-full flex items-center justify-center">
+        <span class="text-2xl font-bold text-[#FB773C]">{nomeCompleto.charAt(0).toUpperCase()}</span>
+      </div>
+      <div>
+        <h2 class="text-lg font-semibold text-white">{nomeCompleto}</h2>
+        <p class="text-gray-400 text-sm">Studente</p>
+      </div>
+    </div>
+    
+    <div class="space-y-4">
+      <div>
+        <span class="block text-gray-500 text-xs uppercase tracking-wide mb-1">Email</span>
+        <p class="text-white">{email}</p>
+      </div>
+    </div>
+  </div>
+  
+  <div class="mt-6 flex gap-3">
+    <a href="/studente/dashboard" class="flex-1 bg-[#FB773C] hover:bg-[#EB3678] text-white text-center font-semibold py-3 px-4 rounded-xl transition-all duration-200">
+      I miei corsi
     </a>
-    </div>
-    <div class="bg-white p-6 rounded-lg shadow-md max-w-md">
-        <div class="mb-4">
-            <h2 class="text-lg font-semibold text-gray-700">Nome e Cognome: </h2>
-            <p class="text-lg text-gray-600">{nomeCompleto}</p>
-            <h2 class="text-lg font-semibold text-gray-700 mt-4">Classe: </h2>
-            <p class="text-lg text-gray-600">{classe}</p>
-            <h2 class="text-lg font-semibold text-gray-700 mt-4">Email: </h2>
-            <p class="text-lg text-gray-600">{email}</p>
-
-
-        </div>
-    </div>
+    <a href="/logout" class="flex-1 bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white text-center font-semibold py-3 px-4 rounded-xl border border-gray-700 transition-all duration-200">
+      Esci
+    </a>
   </div>
 </div>

@@ -1,12 +1,16 @@
 import { db } from '$lib/db/db.js';
 import { corsi } from '$lib/db/models.js';
 import { eq } from 'drizzle-orm';
+import { redirect } from '@sveltejs/kit';
+import { getConfig } from '$lib/config';
 
 export async function load({ params, locals }) {
   const courseId = parseInt(params.id, 10);
-  if (!locals.user) {
-    return { corso: null, error: 'Utente non autenticato' };
+  if (!locals.user || locals.user.role !== 'docente') {
+    throw redirect(302, '/');
   }
+
+  const config = await getConfig();
 
   // Load the specific course by ID, ensuring it belongs to the logged-in teacher
   const [course] = await db
@@ -31,6 +35,6 @@ export async function load({ params, locals }) {
       schedule: course.schedule,
       availability: course.availability,
     }, 
-    days: ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato']
+    siteConfig: config
   };
 }
