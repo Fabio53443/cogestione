@@ -5,6 +5,7 @@ import { studenti } from '$lib/db/models';
 
 export async function GET({ url }) {
   const redirectUri = `${process.env.CF_PAGES_URL}/api/studenti/google/callback`;
+  console.log('Google OAuth redirect URI:', redirectUri);
   
   const client = new OAuth2Client(
     process.env.GOOGLE_CLIENT_ID,
