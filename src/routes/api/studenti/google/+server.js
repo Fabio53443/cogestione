@@ -10,12 +10,17 @@ const client = new OAuth2Client(
 );
 
 export async function GET({ url }) {
-  
-  const authorizeUrl = client.generateAuthUrl({
+  const authOptions = {
     access_type: 'offline',
     prompt: 'consent',
     scope: ['profile', 'email'],
-    hd: 'spallanzanitivoli.edu.it',
-  });
+  };
+  
+  // Restrict to specific Google Workspace domain if configured
+  if (process.env.GOOGLE_ALLOWED_DOMAIN) {
+    authOptions.hd = process.env.GOOGLE_ALLOWED_DOMAIN;
+  }
+  
+  const authorizeUrl = client.generateAuthUrl(authOptions);
   throw redirect(302, authorizeUrl);
 }
