@@ -2,7 +2,11 @@ import { json, redirect } from '@sveltejs/kit';
 import { OAuth2Client } from 'google-auth-library';
 import { db } from '$lib/db/db';
 import { studenti } from '$lib/db/models';
-import { count } from 'drizzle-orm';
+import { count, eq } from 'drizzle-orm';
+import { SignJWT } from 'jose';
+import { TextEncoder } from 'util';
+
+const secret = new TextEncoder().encode(process.env.JWT_SECRET);
 
 export async function GET({ url, cookies }) {
   const redirectUri = `${process.env.CF_PAGES_URL}/api/studenti/google/callback`;
@@ -45,18 +49,23 @@ export async function GET({ url, cookies }) {
     set: { nomeCompleto: name, googleId, hashedPass: googleId }
   });
 
-  //call the login endpoint to get the token
-  const response = await fetch(`${process.env.CF_PAGES_URL}/api/studenti/login`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      username: email,
-      password: googleId,
-    })
-  });
-  const data = await response.json();
-  cookies.set('token', data.token, { path: '/', httpOnly: true });
+  // Get the user's ID from database
+  const user = await db.select({ id: studenti.id })
+    .from(studenti)
+    .where(eq(studenti.email, email));
+
+  // Generate JWT token directly
+  const token = await new SignJWT({ 
+    username: email, 
+    id: user[0].id, 
+    role: 'studente', 
+    nome_completo: name 
+  })
+    .setProtectedHeader({ alg: 'HS256' })
+    .setIssuedAt()
+    .setExpirationTime('36h')
+    .sign(secret);
+
+  cookies.set('token', token, { path: '/', httpOnly: false });
   throw redirect(302, '/studente/dashboard');
 }
