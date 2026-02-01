@@ -1,42 +1,55 @@
 <script>
     export let data;
     const { siteConfig, teachers } = data;
-    
+
     let activeView = null;
     let listData = [];
     let loading = false;
     let error = null;
     let selectedCourses = [];
-    
+
     // Pagination
     let pagination = { page: 1, limit: 20, total: 0, totalPages: 0 };
-    
+
     // Search
-    let searchQuery = '';
+    let searchQuery = "";
     let searchTimeout;
 
     // Course creation modal
     let showCourseModal = false;
-    let courseFormError = '';
+    let courseFormError = "";
     let courseFormLoading = false;
     let courseForm = {
-        nome: '',
-        descrizione: '',
-        aula: '',
-        numPosti: '',
+        nome: "",
+        descrizione: "",
+        aula: "",
+        numPosti: "",
         length: 1,
         availability: [],
-        docenteId: '',
+        docenteId: "",
         createNewDocente: false,
         newDocente: {
-            nome: '',
-            email: '',
-            password: ''
-        }
+            nome: "",
+            email: "",
+            password: "",
+        },
     };
 
+    // Password Reset Modal
+    let showResetPasswordModal = false;
+    let resetPasswordForm = {
+        userId: null,
+        userType: "", // 'student' or 'teacher'
+        userName: "",
+        newPassword: "",
+    };
+    let resetPasswordError = "";
+    let resetPasswordLoading = false;
+
     // Get enabled days from config
-    $: giorni = siteConfig?.days?.filter(d => d.enabled).map(d => ({ id: d.id, name: d.name })) || [
+    $: giorni = siteConfig?.days
+        ?.filter((d) => d.enabled)
+        .map((d) => ({ id: d.id, name: d.name })) || [
         { id: 0, name: "Lunedì" },
         { id: 1, name: "Martedì" },
         { id: 2, name: "Mercoledì" },
@@ -47,17 +60,17 @@
 
     function resetCourseForm() {
         courseForm = {
-            nome: '',
-            descrizione: '',
-            aula: '',
-            numPosti: '',
+            nome: "",
+            descrizione: "",
+            aula: "",
+            numPosti: "",
             length: 1,
             availability: [],
-            docenteId: '',
+            docenteId: "",
             createNewDocente: false,
-            newDocente: { nome: '', email: '', password: '' }
+            newDocente: { nome: "", email: "", password: "" },
         };
-        courseFormError = '';
+        courseFormError = "";
     }
 
     function handleGiornoToggle(giornoId) {
@@ -65,13 +78,15 @@
         if (index === -1) {
             courseForm.availability = [...courseForm.availability, giornoId];
         } else {
-            courseForm.availability = courseForm.availability.filter(id => id !== giornoId);
+            courseForm.availability = courseForm.availability.filter(
+                (id) => id !== giornoId,
+            );
         }
     }
 
     async function createCourse() {
         courseFormLoading = true;
-        courseFormError = '';
+        courseFormError = "";
 
         try {
             const payload = {
@@ -81,14 +96,18 @@
                 numPosti: parseInt(courseForm.numPosti),
                 length: parseInt(courseForm.length),
                 availability: courseForm.availability,
-                docenteId: courseForm.createNewDocente ? null : parseInt(courseForm.docenteId),
-                newDocente: courseForm.createNewDocente ? courseForm.newDocente : null
+                docenteId: courseForm.createNewDocente
+                    ? null
+                    : parseInt(courseForm.docenteId),
+                newDocente: courseForm.createNewDocente
+                    ? courseForm.newDocente
+                    : null,
             };
 
-            const response = await fetch('/api/admin/corso', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+            const response = await fetch("/api/admin/corso", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
             });
 
             const result = await response.json();
@@ -96,14 +115,14 @@
             if (result.success) {
                 showCourseModal = false;
                 resetCourseForm();
-                if (activeView === 'courses') {
-                    fetchData('courses', pagination.page);
+                if (activeView === "courses") {
+                    fetchData("courses", pagination.page);
                 }
             } else {
                 courseFormError = result.message;
             }
         } catch (e) {
-            courseFormError = 'Errore durante la creazione del corso';
+            courseFormError = "Errore durante la creazione del corso";
         }
 
         courseFormLoading = false;
@@ -114,7 +133,7 @@
         error = null;
         try {
             let url = `/api/admin/${type}?page=${page}&limit=${pagination.limit}`;
-            if (type === 'students' && searchQuery) {
+            if (type === "students" && searchQuery) {
                 url += `&search=${encodeURIComponent(searchQuery)}`;
             }
             const response = await fetch(url);
@@ -135,8 +154,8 @@
     function handleSearch(e) {
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(() => {
-            if (activeView === 'students') {
-                fetchData('students', 1);
+            if (activeView === "students") {
+                fetchData("students", 1);
             }
         }, 300);
     }
@@ -164,7 +183,7 @@
             }
         } catch (e) {
             error = e.message;
-        }        
+        }
     }
 
     async function deleteCourse(id) {
@@ -183,7 +202,7 @@
             const data = await response.json();
             if (data.success) {
                 const url = window.URL.createObjectURL(new Blob([data.file]));
-                const link = document.createElement('a');
+                const link = document.createElement("a");
                 link.href = url;
                 link.download = `corso_${id}_deleted.pdf`;
                 document.body.appendChild(link);
@@ -196,7 +215,7 @@
             }
         } catch (e) {
             error = e.message;
-        }        
+        }
     }
 
     async function deleteDocente(id) {
@@ -220,7 +239,55 @@
             }
         } catch (e) {
             error = e.message;
-        }        
+        }
+    }
+
+    function openResetPasswordModal(user, type) {
+        resetPasswordForm = {
+            userId: user.id,
+            userType: type,
+            userName: user.nomeCompleto || user.nome,
+            newPassword: "",
+        };
+        resetPasswordError = "";
+        showResetPasswordModal = true;
+    }
+
+    async function handlePasswordReset() {
+        if (!resetPasswordForm.newPassword) {
+            resetPasswordError = "Inserisci una nuova password";
+            return;
+        }
+
+        resetPasswordLoading = true;
+        resetPasswordError = "";
+
+        try {
+            const response = await fetch("/api/admin/reset-password", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    userId: resetPasswordForm.userId,
+                    userType: resetPasswordForm.userType,
+                    newPassword: resetPasswordForm.newPassword,
+                }),
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                showResetPasswordModal = false;
+                alert(
+                    `Password per ${resetPasswordForm.userName} reimpostata con successo.`,
+                );
+            } else {
+                resetPasswordError = result.message;
+            }
+        } catch (e) {
+            resetPasswordError = "Errore durante il reset della password";
+        }
+
+        resetPasswordLoading = false;
     }
 
     async function downloadSelectedIscrizioni() {
@@ -230,24 +297,30 @@
         }
 
         try {
-            const response = await fetch(`/api/admin/corso/pdf-iscrizioni-bulk`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
+            const response = await fetch(
+                `/api/admin/corso/pdf-iscrizioni-bulk`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ courseIds: selectedCourses }),
                 },
-                body: JSON.stringify({ courseIds: selectedCourses }),
-            });
-            
+            );
+
             if (!response.ok) {
                 const errorData = await response.json();
                 error = errorData.message || "Download failed";
                 return;
             }
 
-            const filename = response.headers.get('Content-Disposition')?.split('filename=')[1] || 'iscrizioni_corsi.zip';
+            const filename =
+                response.headers
+                    .get("Content-Disposition")
+                    ?.split("filename=")[1] || "iscrizioni_corsi.zip";
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
+            const link = document.createElement("a");
             link.href = url;
             link.download = filename;
             document.body.appendChild(link);
@@ -261,66 +334,168 @@
 </script>
 
 <div class="max-w-6xl mx-auto px-4">
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+    <div
+        class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8"
+    >
         <h1 class="text-2xl md:text-3xl font-bold text-white">Admin</h1>
         <div class="flex flex-wrap gap-2">
-            <a 
-                href="/admin/notifications" 
+            <a
+                href="/admin/notifications"
                 class="inline-flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white font-medium py-2.5 px-5 rounded-xl border border-gray-700 transition-all duration-200"
             >
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                <svg
+                    class="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    ><path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                    /></svg
+                >
                 Notifiche
             </a>
-            <a 
-                href="/admin/settings" 
+            <a
+                href="/admin/settings"
                 class="inline-flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white font-medium py-2.5 px-5 rounded-xl border border-gray-700 transition-all duration-200"
             >
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                <svg
+                    class="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    ><path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                    /><path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                    /></svg
+                >
                 Impostazioni
             </a>
         </div>
     </div>
-    
+
     <!-- Quick nav buttons -->
     <div class="grid grid-cols-3 gap-3 mb-6">
         <button
-            class="flex flex-col items-center gap-2 bg-[#252536] hover:bg-[#2d2d42] text-white font-medium py-4 px-4 rounded-xl border border-gray-700/50 transition-all duration-200 {activeView === 'students' ? 'ring-2 ring-[#FB773C]' : ''}"
-            on:click={() => { searchQuery = ''; fetchData('students'); }}>
-            <svg class="w-6 h-6 text-[#FB773C]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+            class="flex flex-col items-center gap-2 bg-[#252536] hover:bg-[#2d2d42] text-white font-medium py-4 px-4 rounded-xl border border-gray-700/50 transition-all duration-200 {activeView ===
+            'students'
+                ? 'ring-2 ring-[#FB773C]'
+                : ''}"
+            on:click={() => {
+                searchQuery = "";
+                fetchData("students");
+            }}
+        >
+            <svg
+                class="w-6 h-6 text-[#FB773C]"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                ><path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+                /></svg
+            >
             <span class="text-sm">Studenti</span>
         </button>
         <button
-            class="flex flex-col items-center gap-2 bg-[#252536] hover:bg-[#2d2d42] text-white font-medium py-4 px-4 rounded-xl border border-gray-700/50 transition-all duration-200 {activeView === 'courses' ? 'ring-2 ring-[#FB773C]' : ''}"
-            on:click={() => fetchData('courses')}>
-            <svg class="w-6 h-6 text-[#FB773C]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+            class="flex flex-col items-center gap-2 bg-[#252536] hover:bg-[#2d2d42] text-white font-medium py-4 px-4 rounded-xl border border-gray-700/50 transition-all duration-200 {activeView ===
+            'courses'
+                ? 'ring-2 ring-[#FB773C]'
+                : ''}"
+            on:click={() => fetchData("courses")}
+        >
+            <svg
+                class="w-6 h-6 text-[#FB773C]"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                ><path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                /></svg
+            >
             <span class="text-sm">Corsi</span>
         </button>
         <button
-            class="flex flex-col items-center gap-2 bg-[#252536] hover:bg-[#2d2d42] text-white font-medium py-4 px-4 rounded-xl border border-gray-700/50 transition-all duration-200 {activeView === 'teachers' ? 'ring-2 ring-[#FB773C]' : ''}"
-            on:click={() => fetchData('teachers')}>
-            <svg class="w-6 h-6 text-[#FB773C]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+            class="flex flex-col items-center gap-2 bg-[#252536] hover:bg-[#2d2d42] text-white font-medium py-4 px-4 rounded-xl border border-gray-700/50 transition-all duration-200 {activeView ===
+            'teachers'
+                ? 'ring-2 ring-[#FB773C]'
+                : ''}"
+            on:click={() => fetchData("teachers")}
+        >
+            <svg
+                class="w-6 h-6 text-[#FB773C]"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                ><path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                /></svg
+            >
             <span class="text-sm">Organizzatori</span>
         </button>
     </div>
 
     <!-- Create Course Button (only for courses view) -->
-    {#if activeView === 'courses'}
+    {#if activeView === "courses"}
         <div class="mb-6">
             <button
                 class="inline-flex items-center gap-2 bg-[#FB773C] hover:bg-[#EB3678] text-white font-medium py-2.5 px-5 rounded-xl transition-all duration-200"
-                on:click={() => { resetCourseForm(); showCourseModal = true; }}
+                on:click={() => {
+                    resetCourseForm();
+                    showCourseModal = true;
+                }}
             >
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                <svg
+                    class="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    ><path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M12 4v16m8-8H4"
+                    /></svg
+                >
                 Crea Corso
             </button>
         </div>
     {/if}
 
     <!-- Search bar (only for students) -->
-    {#if activeView === 'students'}
+    {#if activeView === "students"}
         <div class="mb-6">
             <div class="relative">
-                <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                <svg
+                    class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    ><path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    /></svg
+                >
                 <input
                     type="text"
                     bind:value={searchQuery}
@@ -334,19 +509,26 @@
 
     {#if loading}
         <div class="flex justify-center py-12">
-            <div class="animate-spin rounded-full h-10 w-10 border-2 border-[#FB773C] border-t-transparent"></div>
+            <div
+                class="animate-spin rounded-full h-10 w-10 border-2 border-[#FB773C] border-t-transparent"
+            ></div>
         </div>
     {:else if error}
-        <div class="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-xl">
+        <div
+            class="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-xl"
+        >
             {error}
         </div>
     {:else if activeView && listData.length > 0}
-        <div class="bg-[#252536] rounded-2xl border border-gray-700/50 overflow-hidden">
-            {#if activeView === 'courses' && selectedCourses.length > 0}
+        <div
+            class="bg-[#252536] rounded-2xl border border-gray-700/50 overflow-hidden"
+        >
+            {#if activeView === "courses" && selectedCourses.length > 0}
                 <div class="p-4 border-b border-gray-700/50 bg-blue-500/10">
                     <button
                         class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg text-sm"
-                        on:click={downloadSelectedIscrizioni}>
+                        on:click={downloadSelectedIscrizioni}
+                    >
                         Scarica iscrizioni ({selectedCourses.length})
                     </button>
                 </div>
@@ -355,14 +537,16 @@
                 <table class="w-full">
                     <thead class="bg-[#1e1e2e] text-gray-400 text-sm">
                         <tr>
-                            {#if activeView === 'courses'}
+                            {#if activeView === "courses"}
                                 <th class="px-4 py-3 text-left w-10">
                                     <input
                                         type="checkbox"
                                         class="rounded bg-transparent border-gray-600"
                                         on:change={(e) => {
                                             if (e.target.checked) {
-                                                selectedCourses = listData.map(item => item.id);
+                                                selectedCourses = listData.map(
+                                                    (item) => item.id,
+                                                );
                                             } else {
                                                 selectedCourses = [];
                                             }
@@ -372,18 +556,21 @@
                             {/if}
                             <th class="px-4 py-3 text-left">ID</th>
                             <th class="px-4 py-3 text-left">Nome</th>
-                            {#if activeView === 'students'}
+                            {#if activeView === "students"}
                                 <th class="px-4 py-3 text-left">Classe</th>
                                 <th class="px-4 py-3 text-left">Email</th>
                                 <th class="px-4 py-3 text-left">SdO</th>
                                 <th class="px-4 py-3 text-left">Azioni</th>
-                            {:else if activeView === 'courses'}
+                            {:else if activeView === "courses"}
                                 <th class="px-4 py-3 text-left">Aula</th>
                                 <th class="px-4 py-3 text-left">Azioni</th>
-                            {:else if activeView === 'teachers'}
+                            {:else if activeView === "teachers"}
                                 <th class="px-4 py-3 text-left">Email</th>
                                 <th class="px-4 py-3 text-left">
-                                    <a href="/admin/docenti/create" class="text-green-400 hover:text-green-300 text-sm font-medium">
+                                    <a
+                                        href="/admin/docenti/create"
+                                        class="text-green-400 hover:text-green-300 text-sm font-medium"
+                                    >
                                         + Aggiungi
                                     </a>
                                 </th>
@@ -392,34 +579,53 @@
                     </thead>
                     <tbody class="text-gray-300">
                         {#each listData as item}
-                            <tr class="border-t border-gray-700/50 hover:bg-white/5">
-                                {#if activeView === 'courses'}
+                            <tr
+                                class="border-t border-gray-700/50 hover:bg-white/5"
+                            >
+                                {#if activeView === "courses"}
                                     <td class="px-4 py-3">
                                         <input
                                             type="checkbox"
                                             class="rounded bg-transparent border-gray-600"
-                                            checked={selectedCourses.includes(item.id)}
+                                            checked={selectedCourses.includes(
+                                                item.id,
+                                            )}
                                             on:change={(e) => {
                                                 if (e.target.checked) {
-                                                    selectedCourses = [...selectedCourses, item.id];
+                                                    selectedCourses = [
+                                                        ...selectedCourses,
+                                                        item.id,
+                                                    ];
                                                 } else {
-                                                    selectedCourses = selectedCourses.filter(id => id !== item.id);
+                                                    selectedCourses =
+                                                        selectedCourses.filter(
+                                                            (id) =>
+                                                                id !== item.id,
+                                                        );
                                                 }
                                             }}
                                         />
                                     </td>
                                 {/if}
-                                <td class="px-4 py-3 text-gray-500 text-sm">{item.id}</td>
+                                <td class="px-4 py-3 text-gray-500 text-sm"
+                                    >{item.id}</td
+                                >
                                 <td class="px-4 py-3 text-white font-medium">
-                                    {#if activeView === 'students'}
+                                    {#if activeView === "students"}
                                         <div class="flex items-center gap-2">
-                                            <a href="/admin/studenti/{item.id}" class="hover:text-[#FB773C] transition-colors">
+                                            <a
+                                                href="/admin/studenti/{item.id}"
+                                                class="hover:text-[#FB773C] transition-colors"
+                                            >
                                                 {item.nomeCompleto}
                                             </a>
                                             {#if item.holes > 0}
-                                                <span 
+                                                <span
                                                     class="flex-shrink-0 w-5 h-5 bg-red-500/20 text-red-400 rounded-full flex items-center justify-center text-xs font-bold cursor-help"
-                                                    title="{item.holes} {item.holes === 1 ? 'buco' : 'buchi'} nell'orario"
+                                                    title="{item.holes} {item.holes ===
+                                                    1
+                                                        ? 'buco'
+                                                        : 'buchi'} nell'orario"
                                                 >
                                                     !
                                                 </span>
@@ -429,11 +635,19 @@
                                         {item.nomeCompleto || item.nome}
                                     {/if}
                                 </td>
-                                {#if activeView === 'students'}
-                                    <td class="px-4 py-3 text-gray-400">{item.classe || '—'}</td>
-                                    <td class="px-4 py-3 text-gray-400">{item.email}</td>
+                                {#if activeView === "students"}
+                                    <td class="px-4 py-3 text-gray-400"
+                                        >{item.classe || "—"}</td
+                                    >
+                                    <td class="px-4 py-3 text-gray-400"
+                                        >{item.email}</td
+                                    >
                                     <td class="px-4 py-3">
-                                        <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium {item.sdo ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400'}">
+                                        <span
+                                            class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium {item.sdo
+                                                ? 'bg-green-500/20 text-green-400'
+                                                : 'bg-gray-500/20 text-gray-400'}"
+                                        >
                                             {item.sdo ? "Sì" : "No"}
                                         </span>
                                     </td>
@@ -441,44 +655,86 @@
                                         <div class="flex items-center gap-2">
                                             <a
                                                 class="text-[#FB773C] hover:text-[#EB3678] text-sm font-medium"
-                                                href="/admin/studenti/{item.id}">
+                                                href="/admin/studenti/{item.id}"
+                                            >
                                                 Dettagli
                                             </a>
                                             <button
                                                 class="text-blue-400 hover:text-blue-300 text-sm font-medium"
-                                                on:click={() => adminStatus(item.id)}>
-                                                {item.sdo ? "Rimuovi SdO" : "SdO"}
+                                                on:click={() =>
+                                                    adminStatus(item.id)}
+                                            >
+                                                {item.sdo
+                                                    ? "Rimuovi SdO"
+                                                    : "SdO"}
+                                            </button>
+                                            <button
+                                                class="text-yellow-400 hover:text-yellow-300 text-sm font-medium"
+                                                on:click={() =>
+                                                    openResetPasswordModal(
+                                                        item,
+                                                        "student",
+                                                    )}
+                                            >
+                                                Reset
                                             </button>
                                         </div>
                                     </td>
-                                {:else if activeView === 'courses'}
-                                    <td class="px-4 py-3 text-gray-400">{item.aula}</td>
+                                {:else if activeView === "courses"}
+                                    <td class="px-4 py-3 text-gray-400"
+                                        >{item.aula}</td
+                                    >
                                     <td class="px-4 py-3">
                                         <div class="flex items-center gap-3">
-                                            <a href="/admin/corsi/{item.id}" class="text-[#FB773C] hover:text-[#EB3678] text-sm font-medium">
+                                            <a
+                                                href="/admin/corsi/{item.id}"
+                                                class="text-[#FB773C] hover:text-[#EB3678] text-sm font-medium"
+                                            >
                                                 Gestisci
                                             </a>
-                                            <a href="/api/admin/corso/pdf-iscrizioni/{item.id}" class="text-blue-400 hover:text-blue-300 text-sm font-medium">
+                                            <a
+                                                href="/api/admin/corso/pdf-iscrizioni/{item.id}"
+                                                class="text-blue-400 hover:text-blue-300 text-sm font-medium"
+                                            >
                                                 PDF
                                             </a>
                                             <button
                                                 class="text-red-400 hover:text-red-300 text-sm font-medium"
-                                                on:click={() => deleteCourse(item.id)}>
+                                                on:click={() =>
+                                                    deleteCourse(item.id)}
+                                            >
                                                 Elimina
                                             </button>
                                         </div>
                                     </td>
-                                {:else if activeView === 'teachers'}
-                                    <td class="px-4 py-3 text-gray-400">{item.email}</td>
+                                {:else if activeView === "teachers"}
+                                    <td class="px-4 py-3 text-gray-400"
+                                        >{item.email}</td
+                                    >
                                     <td class="px-4 py-3">
                                         <div class="flex items-center gap-3">
-                                            <a href="/admin/docenti/{item.id}" class="text-[#FB773C] hover:text-[#EB3678] text-sm font-medium">
+                                            <a
+                                                href="/admin/docenti/{item.id}"
+                                                class="text-[#FB773C] hover:text-[#EB3678] text-sm font-medium"
+                                            >
                                                 Impersona
                                             </a>
                                             <button
                                                 class="text-red-400 hover:text-red-300 text-sm font-medium"
-                                                on:click={() => deleteDocente(item.id)}>
+                                                on:click={() =>
+                                                    deleteDocente(item.id)}
+                                            >
                                                 Elimina
+                                            </button>
+                                            <button
+                                                class="text-yellow-400 hover:text-yellow-300 text-sm font-medium"
+                                                on:click={() =>
+                                                    openResetPasswordModal(
+                                                        item,
+                                                        "teacher",
+                                                    )}
+                                            >
+                                                Reset
                                             </button>
                                         </div>
                                     </td>
@@ -491,9 +747,12 @@
 
             <!-- Pagination -->
             {#if pagination.totalPages > 1}
-                <div class="px-4 py-3 border-t border-gray-700/50 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div
+                    class="px-4 py-3 border-t border-gray-700/50 flex flex-col sm:flex-row items-center justify-between gap-3"
+                >
                     <div class="text-sm text-gray-500">
-                        Pagina {pagination.page} di {pagination.totalPages} ({pagination.total} totali)
+                        Pagina {pagination.page} di {pagination.totalPages} ({pagination.total}
+                        totali)
                     </div>
                     <div class="flex items-center gap-2">
                         <button
@@ -502,16 +761,33 @@
                             on:click={() => goToPage(pagination.page - 1)}
                             aria-label="Pagina precedente"
                         >
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                            <svg
+                                class="w-5 h-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                                ><path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M15 19l-7-7 7-7"
+                                /></svg
+                            >
                         </button>
-                        {#each Array(Math.min(5, pagination.totalPages)).fill(0).map((_, i) => {
-                            const start = Math.max(1, pagination.page - 2);
-                            const end = Math.min(pagination.totalPages, start + 4);
-                            const actualStart = Math.max(1, end - 4);
-                            return actualStart + i;
-                        }).filter(p => p <= pagination.totalPages) as page}
+                        {#each Array(Math.min(5, pagination.totalPages))
+                            .fill(0)
+                            .map((_, i) => {
+                                const start = Math.max(1, pagination.page - 2);
+                                const end = Math.min(pagination.totalPages, start + 4);
+                                const actualStart = Math.max(1, end - 4);
+                                return actualStart + i;
+                            })
+                            .filter((p) => p <= pagination.totalPages) as page}
                             <button
-                                class="w-10 h-10 rounded-lg text-sm font-medium transition-colors {page === pagination.page ? 'bg-[#FB773C] text-white' : 'bg-[#1e1e2e] text-gray-400 hover:text-white'}"
+                                class="w-10 h-10 rounded-lg text-sm font-medium transition-colors {page ===
+                                pagination.page
+                                    ? 'bg-[#FB773C] text-white'
+                                    : 'bg-[#1e1e2e] text-gray-400 hover:text-white'}"
                                 on:click={() => goToPage(page)}
                             >
                                 {page}
@@ -523,14 +799,27 @@
                             on:click={() => goToPage(pagination.page + 1)}
                             aria-label="Pagina successiva"
                         >
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                            <svg
+                                class="w-5 h-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                                ><path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M9 5l7 7-7 7"
+                                /></svg
+                            >
                         </button>
                     </div>
                 </div>
             {/if}
         </div>
     {:else if activeView}
-        <div class="bg-[#252536] rounded-2xl p-8 text-center border border-gray-700/50">
+        <div
+            class="bg-[#252536] rounded-2xl p-8 text-center border border-gray-700/50"
+        >
             <p class="text-gray-400">
                 {#if searchQuery}
                     Nessun risultato per "{searchQuery}"
@@ -545,29 +834,52 @@
 <!-- Course Creation Modal -->
 {#if showCourseModal}
     <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-    <div class="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" on:click|self={() => showCourseModal = false}>
-        <div class="bg-[#252536] rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto border border-gray-700/50">
-            <div class="flex items-center justify-between p-5 border-b border-gray-700/50">
+    <div
+        class="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4"
+        on:click|self={() => (showCourseModal = false)}
+    >
+        <div
+            class="bg-[#252536] rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto border border-gray-700/50"
+        >
+            <div
+                class="flex items-center justify-between p-5 border-b border-gray-700/50"
+            >
                 <h2 class="text-xl font-bold text-white">Crea Nuovo Corso</h2>
-                <button 
+                <button
                     class="text-gray-400 hover:text-white transition-colors"
-                    on:click={() => showCourseModal = false}
+                    on:click={() => (showCourseModal = false)}
                     aria-label="Chiudi"
                 >
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    <svg
+                        class="w-6 h-6"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        ><path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12"
+                        /></svg
+                    >
                 </button>
             </div>
-            
+
             <form on:submit|preventDefault={createCourse} class="p-5 space-y-4">
                 {#if courseFormError}
-                    <div class="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-xl text-sm">
+                    <div
+                        class="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-xl text-sm"
+                    >
                         {courseFormError}
                     </div>
                 {/if}
 
                 <!-- Nome -->
                 <div>
-                    <label class="block text-gray-400 text-sm font-medium mb-2" for="nome">Nome del Corso</label>
+                    <label
+                        class="block text-gray-400 text-sm font-medium mb-2"
+                        for="nome">Nome del Corso</label
+                    >
                     <input
                         type="text"
                         id="nome"
@@ -580,7 +892,10 @@
 
                 <!-- Descrizione -->
                 <div>
-                    <label class="block text-gray-400 text-sm font-medium mb-2" for="descrizione">Descrizione</label>
+                    <label
+                        class="block text-gray-400 text-sm font-medium mb-2"
+                        for="descrizione">Descrizione</label
+                    >
                     <textarea
                         id="descrizione"
                         bind:value={courseForm.descrizione}
@@ -594,7 +909,10 @@
                 <!-- Aula e Posti -->
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-gray-400 text-sm font-medium mb-2" for="aula">Aula</label>
+                        <label
+                            class="block text-gray-400 text-sm font-medium mb-2"
+                            for="aula">Aula</label
+                        >
                         <input
                             type="text"
                             id="aula"
@@ -605,7 +923,10 @@
                         />
                     </div>
                     <div>
-                        <label class="block text-gray-400 text-sm font-medium mb-2" for="numPosti">Posti</label>
+                        <label
+                            class="block text-gray-400 text-sm font-medium mb-2"
+                            for="numPosti">Posti</label
+                        >
                         <input
                             type="number"
                             id="numPosti"
@@ -620,26 +941,39 @@
 
                 <!-- Durata -->
                 <div>
-                    <label class="block text-gray-400 text-sm font-medium mb-2" for="length">Durata (ore)</label>
+                    <label
+                        class="block text-gray-400 text-sm font-medium mb-2"
+                        for="length">Durata (ore)</label
+                    >
                     <select
                         id="length"
                         bind:value={courseForm.length}
                         class="w-full bg-[#1e1e2e] border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#FB773C] focus:ring-1 focus:ring-[#FB773C] transition-colors"
                     >
-                        {#each Array(maxCourseLength).fill(0).map((_, i) => i + 1) as len}
-                            <option value={len}>{len} {len === 1 ? 'ora' : 'ore'}</option>
+                        {#each Array(maxCourseLength)
+                            .fill(0)
+                            .map((_, i) => i + 1) as len}
+                            <option value={len}
+                                >{len} {len === 1 ? "ora" : "ore"}</option
+                            >
                         {/each}
                     </select>
                 </div>
 
                 <!-- Giorni -->
                 <div>
-                    <span class="block text-gray-400 text-sm font-medium mb-2">Giorni disponibili</span>
+                    <span class="block text-gray-400 text-sm font-medium mb-2"
+                        >Giorni disponibili</span
+                    >
                     <div class="flex flex-wrap gap-2">
                         {#each giorni as giorno}
                             <button
                                 type="button"
-                                class="px-4 py-2 rounded-lg text-sm font-medium transition-colors {courseForm.availability.includes(giorno.id) ? 'bg-[#FB773C] text-white' : 'bg-[#1e1e2e] text-gray-400 hover:text-white border border-gray-700'}"
+                                class="px-4 py-2 rounded-lg text-sm font-medium transition-colors {courseForm.availability.includes(
+                                    giorno.id,
+                                )
+                                    ? 'bg-[#FB773C] text-white'
+                                    : 'bg-[#1e1e2e] text-gray-400 hover:text-white border border-gray-700'}"
                                 on:click={() => handleGiornoToggle(giorno.id)}
                             >
                                 {giorno.name.slice(0, 3)}
@@ -650,15 +984,18 @@
 
                 <!-- Organizzatore -->
                 <div>
-                    <span class="block text-gray-400 text-sm font-medium mb-2">Organizzatore</span>
-                    
+                    <span class="block text-gray-400 text-sm font-medium mb-2"
+                        >Organizzatore</span
+                    >
+
                     <div class="flex items-center gap-3 mb-3">
                         <label class="flex items-center gap-2 cursor-pointer">
                             <input
                                 type="radio"
                                 name="docenteType"
                                 checked={!courseForm.createNewDocente}
-                                on:change={() => courseForm.createNewDocente = false}
+                                on:change={() =>
+                                    (courseForm.createNewDocente = false)}
                                 class="text-[#FB773C] focus:ring-[#FB773C]"
                             />
                             <span class="text-gray-300 text-sm">Esistente</span>
@@ -668,7 +1005,8 @@
                                 type="radio"
                                 name="docenteType"
                                 checked={courseForm.createNewDocente}
-                                on:change={() => courseForm.createNewDocente = true}
+                                on:change={() =>
+                                    (courseForm.createNewDocente = true)}
                                 class="text-[#FB773C] focus:ring-[#FB773C]"
                             />
                             <span class="text-gray-300 text-sm">Nuovo</span>
@@ -683,11 +1021,15 @@
                         >
                             <option value="">Seleziona organizzatore...</option>
                             {#each teachers as teacher}
-                                <option value={teacher.id}>{teacher.nomeCompleto} ({teacher.email})</option>
+                                <option value={teacher.id}
+                                    >{teacher.nomeCompleto} ({teacher.email})</option
+                                >
                             {/each}
                         </select>
                     {:else}
-                        <div class="space-y-3 bg-[#1e1e2e] rounded-xl p-4 border border-gray-700">
+                        <div
+                            class="space-y-3 bg-[#1e1e2e] rounded-xl p-4 border border-gray-700"
+                        >
                             <input
                                 type="text"
                                 bind:value={courseForm.newDocente.nome}
@@ -718,7 +1060,7 @@
                     <button
                         type="button"
                         class="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-medium py-3 px-4 rounded-xl transition-colors"
-                        on:click={() => showCourseModal = false}
+                        on:click={() => (showCourseModal = false)}
                     >
                         Annulla
                     </button>
@@ -728,13 +1070,107 @@
                         class="flex-1 bg-[#FB773C] hover:bg-[#EB3678] disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-xl transition-colors flex items-center justify-center gap-2"
                     >
                         {#if courseFormLoading}
-                            <div class="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                            <div
+                                class="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"
+                            ></div>
                         {:else}
                             Crea Corso
                         {/if}
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+{/if}
+
+<!-- Password Reset Modal -->
+{#if showResetPasswordModal}
+    <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
+    <div
+        class="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4"
+        on:click|self={() => (showResetPasswordModal = false)}
+    >
+        <div
+            class="bg-[#252536] rounded-2xl w-full max-w-md border border-gray-700/50 overflow-hidden"
+        >
+            <div
+                class="p-5 border-b border-gray-700/50 flex justify-between items-center"
+            >
+                <h3 class="text-xl font-bold text-white">Reset Password</h3>
+                <button
+                    class="text-gray-400 hover:text-white transition-colors"
+                    on:click={() => (showResetPasswordModal = false)}
+                >
+                    <svg
+                        class="w-6 h-6"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        ><path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12"
+                        /></svg
+                    >
+                </button>
+            </div>
+            <div class="p-5">
+                <p class="text-gray-300 mb-4">
+                    Stai per cambiare la password per <span
+                        class="text-white font-bold"
+                        >{resetPasswordForm.userName}</span
+                    >.
+                </p>
+
+                {#if resetPasswordError}
+                    <div
+                        class="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-xl text-sm mb-4"
+                    >
+                        {resetPasswordError}
+                    </div>
+                {/if}
+
+                <form on:submit|preventDefault={handlePasswordReset}>
+                    <div class="mb-4">
+                        <label
+                            class="block text-gray-400 text-sm font-medium mb-2"
+                            for="newPassword">Nuova Password</label
+                        >
+                        <input
+                            type="text"
+                            id="newPassword"
+                            bind:value={resetPasswordForm.newPassword}
+                            class="w-full bg-[#1e1e2e] border border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[#FB773C] focus:ring-1 focus:ring-[#FB773C] transition-colors"
+                            placeholder="Inserisci nuova password"
+                            required
+                        />
+                    </div>
+
+                    <div class="flex gap-3 mt-6">
+                        <button
+                            type="button"
+                            class="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-medium py-2.5 px-4 rounded-xl transition-colors"
+                            on:click={() => (showResetPasswordModal = false)}
+                        >
+                            Annulla
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={resetPasswordLoading}
+                            class="flex-1 bg-[#FB773C] hover:bg-[#EB3678] disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-2.5 px-4 rounded-xl transition-colors flex items-center justify-center"
+                        >
+                            {#if resetPasswordLoading}
+                                <div
+                                    class="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"
+                                ></div>
+                            {:else}
+                                Conferma Reset
+                            {/if}
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 {/if}
