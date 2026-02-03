@@ -151,7 +151,7 @@
         </div>
         <div class="flex items-center gap-1.5 bg-gray-500/10 text-gray-400 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm">
           <span class="w-2 h-2 rounded-full bg-gray-500"></span>
-          {unknownCount} da registrare
+          {unknownCount} sconosciuto
         </div>
       </div>
       
