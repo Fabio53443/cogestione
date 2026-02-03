@@ -15,6 +15,9 @@
 
     $: pageName = $page.data.pageName;
     $: user = $page.data.user;
+    $: siteConfig = $page.data.siteConfig;
+    $: eventName = siteConfig?.eventName || 'Autogestione';
+    $: isHome = pageName === eventName;
 
     // Added dropdown toggle for student user
     let dropdownOpen = false;
@@ -33,7 +36,7 @@
         <div class="container mx-auto px-4 py-3">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                    {#if pageName != "Autogestione"}
+                    {#if !isHome}
                         <a
                             href="/"
                             class="text-gray-400 hover:text-white transition-colors p-2 hover:bg-white/5 rounded-lg"
