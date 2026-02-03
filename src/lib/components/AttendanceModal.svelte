@@ -103,7 +103,7 @@
     } else if (presente === false) {
       return { label: 'Assente', color: 'red', bgClass: 'bg-red-500/20 text-red-400 hover:bg-red-500/30', dotClass: 'bg-red-400' };
     } else {
-      return { label: 'Non registrato', color: 'gray', bgClass: 'bg-gray-500/20 text-gray-400 hover:bg-gray-500/30', dotClass: 'bg-gray-400' };
+      return { label: 'N/D', color: 'gray', bgClass: 'bg-gray-500/20 text-gray-400 hover:bg-gray-500/30', dotClass: 'bg-gray-400' };
     }
   }
 
