@@ -116,15 +116,15 @@
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <div 
-  class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+  class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 sm:p-4"
   on:click|self={onClose}
 >
-  <div class="bg-[#252536] rounded-2xl max-w-4xl w-full shadow-2xl border border-gray-700/50 max-h-[90vh] flex flex-col">
+  <div class="bg-[#252536] rounded-t-2xl sm:rounded-2xl w-full sm:max-w-4xl shadow-2xl border border-gray-700/50 max-h-[95vh] sm:max-h-[90vh] flex flex-col">
     <!-- Header -->
-    <div class="flex items-center justify-between px-6 py-4 border-b border-gray-700/50">
+    <div class="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-gray-700/50">
       <div>
-        <h2 class="text-xl font-bold text-white">Appello</h2>
-        <p class="text-sm text-gray-400 mt-0.5">{students.length} studenti iscritti</p>
+        <h2 class="text-lg sm:text-xl font-bold text-white">Appello</h2>
+        <p class="text-xs sm:text-sm text-gray-400 mt-0.5">{students.length} studenti iscritti</p>
       </div>
       <button 
         on:click={onClose}
@@ -138,61 +138,61 @@
     </div>
 
     <!-- Stats & Actions Bar -->
-    <div class="px-6 py-3 border-b border-gray-700/50 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+    <div class="px-4 sm:px-6 py-3 border-b border-gray-700/50 space-y-3">
       <!-- Stats -->
-      <div class="flex gap-3">
-        <div class="flex items-center gap-2 bg-green-500/10 text-green-400 px-3 py-1.5 rounded-lg text-sm">
+      <div class="flex flex-wrap gap-2">
+        <div class="flex items-center gap-1.5 bg-green-500/10 text-green-400 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm">
           <span class="w-2 h-2 rounded-full bg-green-500"></span>
           {presentCount} presenti
         </div>
-        <div class="flex items-center gap-2 bg-red-500/10 text-red-400 px-3 py-1.5 rounded-lg text-sm">
+        <div class="flex items-center gap-1.5 bg-red-500/10 text-red-400 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm">
           <span class="w-2 h-2 rounded-full bg-red-500"></span>
           {absentCount} assenti
         </div>
-        <div class="flex items-center gap-2 bg-gray-500/10 text-gray-400 px-3 py-1.5 rounded-lg text-sm">
+        <div class="flex items-center gap-1.5 bg-gray-500/10 text-gray-400 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm">
           <span class="w-2 h-2 rounded-full bg-gray-500"></span>
           {unknownCount} da registrare
         </div>
       </div>
       
       <!-- Actions -->
-      <div class="flex gap-2">
+      <div class="flex flex-wrap gap-2">
         <button
-          class="px-3 py-1.5 text-sm bg-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500/30 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5 transition-colors"
+          class="px-2 sm:px-3 py-1.5 text-xs sm:text-sm bg-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500/30 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5 transition-colors"
           disabled={selectedStudents.size === 0}
           on:click={composeMassEmail}
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
           </svg>
-          Email ({selectedStudents.size})
+          <span class="hidden sm:inline">Email</span> ({selectedStudents.size})
         </button>
         <button
-          class="px-3 py-1.5 text-sm bg-green-500/20 text-green-400 rounded-lg hover:bg-green-500/30 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          class="px-2 sm:px-3 py-1.5 text-xs sm:text-sm bg-green-500/20 text-green-400 rounded-lg hover:bg-green-500/30 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           disabled={selectedStudents.size === 0}
           on:click={() => massUpdateAttendance(true)}
         >
-          ✓ Presenti
+          ✓ <span class="hidden sm:inline">Presenti</span>
         </button>
         <button
-          class="px-3 py-1.5 text-sm bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          class="px-2 sm:px-3 py-1.5 text-xs sm:text-sm bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           disabled={selectedStudents.size === 0}
           on:click={() => massUpdateAttendance(false)}
         >
-          ✗ Assenti
+          ✗ <span class="hidden sm:inline">Assenti</span>
         </button>
         <button
-          class="px-3 py-1.5 text-sm bg-gray-500/20 text-gray-400 rounded-lg hover:bg-gray-500/30 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          class="px-2 sm:px-3 py-1.5 text-xs sm:text-sm bg-gray-500/20 text-gray-400 rounded-lg hover:bg-gray-500/30 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           disabled={selectedStudents.size === 0}
           on:click={() => massUpdateAttendance(null)}
         >
-          ↺ Reset
+          ↺ <span class="hidden sm:inline">Reset</span>
         </button>
       </div>
     </div>
 
     <!-- Search -->
-    <div class="px-6 py-3 border-b border-gray-700/50">
+    <div class="px-4 sm:px-6 py-3 border-b border-gray-700/50">
       <div class="relative">
         <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
@@ -201,13 +201,13 @@
           type="text"
           placeholder="Cerca studente..."
           bind:value={searchQuery}
-          class="w-full bg-[#1e1e2e] border border-gray-700 rounded-xl py-2 pl-10 pr-4 text-white placeholder-gray-500 focus:outline-none focus:border-[#FB773C] transition-colors"
+          class="w-full bg-[#1e1e2e] border border-gray-700 rounded-xl py-2.5 sm:py-2 pl-10 pr-4 text-white placeholder-gray-500 focus:outline-none focus:border-[#FB773C] transition-colors text-sm"
         />
       </div>
     </div>
 
-    <!-- Table Header -->
-    <div class="grid grid-cols-12 gap-4 px-6 py-3 bg-[#1e1e2e] text-xs font-medium text-gray-400 uppercase tracking-wider">
+    <!-- Desktop Table Header (hidden on mobile) -->
+    <div class="hidden sm:grid grid-cols-12 gap-4 px-6 py-3 bg-[#1e1e2e] text-xs font-medium text-gray-400 uppercase tracking-wider">
       <div class="col-span-1">
         <input
           type="checkbox"
@@ -221,11 +221,27 @@
       <div class="col-span-2">Stato</div>
     </div>
 
+    <!-- Mobile Select All (visible on mobile) -->
+    <div class="flex sm:hidden items-center justify-between px-4 py-2 bg-[#1e1e2e] text-xs font-medium text-gray-400">
+      <label class="flex items-center gap-2">
+        <input
+          type="checkbox"
+          checked={selectAll}
+          on:change={toggleSelectAll}
+          class="w-4 h-4 rounded border-gray-600 bg-[#252536] text-[#FB773C] focus:ring-[#FB773C] focus:ring-offset-0"
+        />
+        Seleziona tutti
+      </label>
+      <span>{filteredStudents.length} studenti</span>
+    </div>
+
     <!-- Student List -->
     <div class="flex-1 overflow-y-auto">
       {#each filteredStudents as student (student.id)}
         {@const status = getStatusInfo(student.presente)}
-        <div class="grid grid-cols-12 gap-4 px-6 py-3 border-b border-gray-700/30 hover:bg-[#1e1e2e]/50 items-center transition-colors">
+        
+        <!-- Desktop Row -->
+        <div class="hidden sm:grid grid-cols-12 gap-4 px-6 py-3 border-b border-gray-700/30 hover:bg-[#1e1e2e]/50 items-center transition-colors">
           <div class="col-span-1">
             <input
               type="checkbox"
@@ -260,8 +276,40 @@
             </button>
           </div>
         </div>
+
+        <!-- Mobile Card -->
+        <div class="sm:hidden px-4 py-3 border-b border-gray-700/30 active:bg-[#1e1e2e]/50">
+          <div class="flex items-start gap-3">
+            <input
+              type="checkbox"
+              checked={selectedStudents.has(student.id)}
+              on:change={() => toggleSelect(student.id)}
+              class="w-5 h-5 mt-0.5 rounded border-gray-600 bg-[#252536] text-[#FB773C] focus:ring-[#FB773C] focus:ring-offset-0"
+            />
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between gap-2">
+                <span class="font-medium text-white text-sm truncate">{student.studentName || 'N/A'}</span>
+                <button
+                  class="flex-shrink-0 px-2.5 py-1 rounded-lg text-xs font-medium transition-all duration-200 flex items-center gap-1.5 {status.bgClass}"
+                  on:click={() => cycleAttendance(student)}
+                >
+                  <span class="h-2 w-2 rounded-full {status.dotClass}"></span>
+                  {status.label}
+                </button>
+              </div>
+              {#if student.studentEmail}
+                <a 
+                  href="mailto:{student.studentEmail}" 
+                  class="text-gray-400 hover:text-[#FB773C] transition-colors text-xs truncate block mt-1"
+                >
+                  {student.studentEmail}
+                </a>
+              {/if}
+            </div>
+          </div>
+        </div>
       {:else}
-        <div class="px-6 py-8 text-center text-gray-500">
+        <div class="px-4 sm:px-6 py-8 text-center text-gray-500">
           {#if searchQuery}
             Nessuno studente trovato per "{searchQuery}"
           {:else}

@@ -3,6 +3,7 @@ import { db } from '$lib/db/db.js';
 import { eq } from 'drizzle-orm';
 import { corsi, iscrizioni, professori } from '$lib/db/models.js';
 import { getConfig } from '$lib/config';
+import { isSdO } from '$lib/isAdmin';
 
 export async function load({ locals }) {
   if (!locals.user || locals.user.role !== 'studente') {
@@ -10,6 +11,7 @@ export async function load({ locals }) {
   }
 
   const config = await getConfig();
+  const userIsSdO = await isSdO(locals);
 
   try {
     // Get all courses the student is enrolled in
@@ -40,7 +42,8 @@ export async function load({ locals }) {
       pageName: 'Dashboard studente',
       user: locals.user,
       corsi: corsiIscritto,
-      siteConfig: config
+      siteConfig: config,
+      isSdO: userIsSdO
     };
   } catch (error) {
     console.error('Error fetching courses:', error);
@@ -50,7 +53,8 @@ export async function load({ locals }) {
       user: locals.user,
       corsi: [],
       error: 'Si è verificato un errore durante il caricamento dei corsi.',
-      siteConfig: config
+      siteConfig: config,
+      isSdO: userIsSdO
     };
   }
 }

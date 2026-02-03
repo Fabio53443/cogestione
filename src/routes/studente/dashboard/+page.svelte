@@ -1,6 +1,6 @@
 <script>
   export let data;
-  const { user, corsi, error, siteConfig } = data;
+  const { user, corsi, error, siteConfig, isSdO } = data;
   import Alert from "$lib/components/Alert.svelte";
   
   // Get enabled days from config
@@ -47,6 +47,25 @@
   }, {});
 </script>
 <div class="max-w-4xl mx-auto px-4">
+  {#if isSdO}
+    <div class="bg-[#252536] rounded-2xl p-5 mb-6 border border-[#FB773C]/50">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 bg-[#FB773C]/20 rounded-xl flex items-center justify-center">
+            <svg class="w-6 h-6 text-[#FB773C]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+          </div>
+          <div>
+            <h3 class="text-white font-semibold">Servizio d'Ordine</h3>
+            <p class="text-gray-400 text-sm">Sei parte del servizio d'ordine</p>
+          </div>
+        </div>
+        <a href="/sdo/appello" class="inline-flex items-center justify-center bg-[#FB773C] hover:bg-[#EB3678] text-white font-semibold py-2.5 px-5 rounded-xl transition-all duration-200 hover:shadow-lg hover:shadow-[#FB773C]/20">
+          Fai l'appello
+        </a>
+      </div>
+    </div>
+  {/if}
+  
   <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
     <h1 class="text-2xl md:text-3xl font-bold text-white">I tuoi corsi</h1>
     <a href="/studente/corsi" class="inline-flex items-center justify-center bg-[#FB773C] hover:bg-[#EB3678] text-white font-semibold py-2.5 px-5 rounded-xl transition-all duration-200 hover:shadow-lg hover:shadow-[#FB773C]/20">

@@ -30,7 +30,7 @@ export async function GET({ url, locals }) {
       email: studenti.email,
     })
     .from(studenti)
-    .where(classe === 'Non assegnata' ? eq(studenti.classe, null) : eq(studenti.classe, classe));
+    .where(classe === 'N/A' ? eq(studenti.classe, null) : eq(studenti.classe, classe));
 
     if (classStudents.length === 0) {
       return json({ success: false, message: 'Nessuno studente trovato in questa classe.' }, { status: 404 });

@@ -23,7 +23,7 @@ export async function load({ locals }) {
     // Group students by class
     const classiMap = {};
     allStudents.forEach(student => {
-      const classe = student.classe || 'Non assegnata';
+      const classe = student.classe || 'N/A';
       if (!classiMap[classe]) {
         classiMap[classe] = [];
       }
@@ -38,9 +38,9 @@ export async function load({ locals }) {
         count: students.length
       }))
       .sort((a, b) => {
-        // Put "Non assegnata" at the end
-        if (a.nome === 'Non assegnata') return 1;
-        if (b.nome === 'Non assegnata') return -1;
+        // Put "N/A" at the end
+        if (a.nome === 'N/A') return 1;
+        if (b.nome === 'N/A') return -1;
         return a.nome.localeCompare(b.nome);
       });
 
