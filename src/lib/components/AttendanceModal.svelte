@@ -32,13 +32,20 @@
     selectedStudents = selectedStudents;
   }
 
-  async function toggleAttendance(student) {
+  // Cycle through states: null -> true -> false -> null
+  function getNextState(current) {
+    if (current === null || current === undefined) return true;
+    if (current === true) return false;
+    return null;
+  }
+
+  async function setAttendance(student, newState) {
     try {
       const res = await fetch(`/api/studenti/attendance/${student.id}`, {
         method: 'PUT',
         body: JSON.stringify({ 
           studentId: student.id,
-          present: !student.presente 
+          present: newState 
         }),
         headers: { 'Content-Type': 'application/json' }
       });
@@ -50,6 +57,11 @@
     } catch (error) {
       console.error('Error updating attendance:', error);
     }
+  }
+
+  async function cycleAttendance(student) {
+    const newState = getNextState(student.presente);
+    await setAttendance(student, newState);
   }
 
   async function massUpdateAttendance(present) {
@@ -84,8 +96,20 @@
     }
   }
 
-  $: presentCount = students.filter(s => s.presente).length;
-  $: absentCount = students.length - presentCount;
+  // Helper to get status info
+  function getStatusInfo(presente) {
+    if (presente === true) {
+      return { label: 'Presente', color: 'green', bgClass: 'bg-green-500/20 text-green-400 hover:bg-green-500/30', dotClass: 'bg-green-400' };
+    } else if (presente === false) {
+      return { label: 'Assente', color: 'red', bgClass: 'bg-red-500/20 text-red-400 hover:bg-red-500/30', dotClass: 'bg-red-400' };
+    } else {
+      return { label: 'Non registrato', color: 'gray', bgClass: 'bg-gray-500/20 text-gray-400 hover:bg-gray-500/30', dotClass: 'bg-gray-400' };
+    }
+  }
+
+  $: presentCount = students.filter(s => s.presente === true).length;
+  $: absentCount = students.filter(s => s.presente === false).length;
+  $: unknownCount = students.filter(s => s.presente === null || s.presente === undefined).length;
 </script>
 
 {#if show}
@@ -125,6 +149,10 @@
           <span class="w-2 h-2 rounded-full bg-red-500"></span>
           {absentCount} assenti
         </div>
+        <div class="flex items-center gap-2 bg-gray-500/10 text-gray-400 px-3 py-1.5 rounded-lg text-sm">
+          <span class="w-2 h-2 rounded-full bg-gray-500"></span>
+          {unknownCount} da registrare
+        </div>
       </div>
       
       <!-- Actions -->
@@ -152,6 +180,13 @@
           on:click={() => massUpdateAttendance(false)}
         >
           ✗ Assenti
+        </button>
+        <button
+          class="px-3 py-1.5 text-sm bg-gray-500/20 text-gray-400 rounded-lg hover:bg-gray-500/30 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          disabled={selectedStudents.size === 0}
+          on:click={() => massUpdateAttendance(null)}
+        >
+          ↺ Reset
         </button>
       </div>
     </div>
@@ -189,6 +224,7 @@
     <!-- Student List -->
     <div class="flex-1 overflow-y-auto">
       {#each filteredStudents as student (student.id)}
+        {@const status = getStatusInfo(student.presente)}
         <div class="grid grid-cols-12 gap-4 px-6 py-3 border-b border-gray-700/30 hover:bg-[#1e1e2e]/50 items-center transition-colors">
           <div class="col-span-1">
             <input
@@ -215,11 +251,12 @@
           </div>
           <div class="col-span-2">
             <button
-              class="px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 flex items-center gap-1.5 {student.presente ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30' : 'bg-red-500/20 text-red-400 hover:bg-red-500/30'}"
-              on:click={() => toggleAttendance(student)}
+              class="px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 flex items-center gap-1.5 {status.bgClass}"
+              on:click={() => cycleAttendance(student)}
+              title="Clicca per cambiare stato"
             >
-              <span class="h-2 w-2 rounded-full {student.presente ? 'bg-green-400' : 'bg-red-400'}"></span>
-              {student.presente ? 'Presente' : 'Assente'}
+              <span class="h-2 w-2 rounded-full {status.dotClass}"></span>
+              {status.label}
             </button>
           </div>
         </div>

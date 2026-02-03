@@ -8,15 +8,26 @@
     let alertType = "info";
     let loading = false;
 
+    // Regex for classe format: 1-5 followed by one or more letters (e.g., 5A, 3BS, 1C)
+    const classeRegex = /^[1-5][A-Za-z]+$/;
+
     const handleSubmit = async (event) => {
         event.preventDefault();
         loading = true;
 
-        const classe = event.target.elements.classe.value;
+        const classe = event.target.elements.classe.value.trim().toUpperCase();
 
-        if (!classe || classe.trim() === '') {
+        if (!classe) {
             alertType = "error";
             alertMessage = "Inserisci la tua classe.";
+            showAlert = true;
+            loading = false;
+            return;
+        }
+
+        if (!classeRegex.test(classe)) {
+            alertType = "error";
+            alertMessage = "Formato classe non valido. Usa il formato: numero (1-5) + lettera/e (es. 5A, 3BS).";
             showAlert = true;
             loading = false;
             return;

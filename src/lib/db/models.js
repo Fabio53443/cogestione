@@ -75,7 +75,7 @@ export const iscrizioni = pgTable("iscrizioni", {
   idCorso: integer("id_corso")
     .notNull()
     .references(() => corsi.id),
-  presente: boolean("presente").notNull().default(false),
+  presente: boolean("presente").default(null), // null = not recorded, true = present, false = absent
 });
 
 // Notifications/Alerts table - admin announcements
