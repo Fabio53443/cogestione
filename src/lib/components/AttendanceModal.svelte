@@ -124,7 +124,7 @@
     <div class="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-gray-700/50">
       <div>
         <h2 class="text-lg sm:text-xl font-bold text-white">Appello</h2>
-        <p class="text-xs sm:text-sm text-gray-400 mt-0.5">{students.length} studenti iscritti</p>
+        <p class="text-xs sm:text-sm text-gray-400 mt-0.5">{students.length} posti liberi</p>
       </div>
       <button 
         on:click={onClose}
