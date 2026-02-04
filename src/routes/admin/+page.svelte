@@ -1,4 +1,7 @@
 <script>
+    import { onMount } from 'svelte';
+    import { page } from '$app/stores';
+    
     export let data;
     const { siteConfig, teachers } = data;
     
@@ -18,6 +21,14 @@
     // Course creation modal
     let showCourseModal = false;
     let courseFormError = '';
+    
+    // Auto-load view from URL parameter
+    onMount(() => {
+        const viewParam = $page.url.searchParams.get('view');
+        if (viewParam && ['students', 'courses', 'teachers'].includes(viewParam)) {
+            fetchData(viewParam);
+        }
+    });
     let courseFormLoading = false;
     let courseForm = {
         nome: '',
@@ -114,7 +125,7 @@
         error = null;
         try {
             let url = `/api/admin/${type}?page=${page}&limit=${pagination.limit}`;
-            if (type === 'students' && searchQuery) {
+            if (searchQuery) {
                 url += `&search=${encodeURIComponent(searchQuery)}`;
             }
             const response = await fetch(url);
@@ -135,8 +146,8 @@
     function handleSearch(e) {
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(() => {
-            if (activeView === 'students') {
-                fetchData('students', 1);
+            if (activeView) {
+                fetchData(activeView, 1);
             }
         }, 300);
     }
@@ -265,6 +276,13 @@
         <h1 class="text-2xl md:text-3xl font-bold text-white">Admin</h1>
         <div class="flex flex-wrap gap-2">
             <a 
+                href="/admin/statistics" 
+                class="inline-flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white font-medium py-2.5 px-5 rounded-xl border border-gray-700 transition-all duration-200"
+            >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                Statistiche
+            </a>
+            <a 
                 href="/admin/notifications" 
                 class="inline-flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white font-medium py-2.5 px-5 rounded-xl border border-gray-700 transition-all duration-200"
             >
@@ -297,13 +315,13 @@
         </a>
         <button
             class="flex flex-col items-center gap-2 bg-[#252536] hover:bg-[#2d2d42] text-white font-medium py-4 px-4 rounded-xl border border-gray-700/50 transition-all duration-200 {activeView === 'courses' ? 'ring-2 ring-[#FB773C]' : ''}"
-            on:click={() => fetchData('courses')}>
+            on:click={() => { searchQuery = ''; fetchData('courses'); }}>
             <svg class="w-6 h-6 text-[#FB773C]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
             <span class="text-sm">Corsi</span>
         </button>
         <button
             class="flex flex-col items-center gap-2 bg-[#252536] hover:bg-[#2d2d42] text-white font-medium py-4 px-4 rounded-xl border border-gray-700/50 transition-all duration-200 {activeView === 'teachers' ? 'ring-2 ring-[#FB773C]' : ''}"
-            on:click={() => fetchData('teachers')}>
+            on:click={() => { searchQuery = ''; fetchData('teachers'); }}>
             <svg class="w-6 h-6 text-[#FB773C]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
             <span class="text-sm">Organizzatori</span>
         </button>
@@ -322,8 +340,8 @@
         </div>
     {/if}
 
-    <!-- Search bar (only for students) -->
-    {#if activeView === 'students'}
+    <!-- Search bar -->
+    {#if activeView}
         <div class="mb-6">
             <div class="relative">
                 <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
@@ -331,7 +349,7 @@
                     type="text"
                     bind:value={searchQuery}
                     on:input={handleSearch}
-                    placeholder="Cerca studente per nome, email o classe..."
+                    placeholder={activeView === 'students' ? 'Cerca studente per nome, email o classe...' : activeView === 'courses' ? 'Cerca corso per nome, descrizione o aula...' : 'Cerca organizzatore per nome o email...'}
                     class="w-full bg-[#252536] border border-gray-700 rounded-xl py-3 pl-12 pr-4 text-white placeholder-gray-500 focus:outline-none focus:border-[#FB773C] focus:ring-1 focus:ring-[#FB773C] transition-colors"
                 />
             </div>
@@ -381,7 +399,6 @@
                             {#if activeView === 'students'}
                                 <th class="px-4 py-3 text-left">Classe</th>
                                 <th class="px-4 py-3 text-left">Email</th>
-                                <th class="px-4 py-3 text-left">SdO</th>
                                 <th class="px-4 py-3 text-left">Azioni</th>
                             {:else if activeView === 'courses'}
                                 <th class="px-4 py-3 text-left">Aula</th>
@@ -439,22 +456,12 @@
                                     <td class="px-4 py-3 text-gray-400">{item.classe || '—'}</td>
                                     <td class="px-4 py-3 text-gray-400">{item.email}</td>
                                     <td class="px-4 py-3">
-                                        <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium {item.sdo ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400'}">
-                                            {item.sdo ? "Sì" : "No"}
-                                        </span>
-                                    </td>
-                                    <td class="px-4 py-3">
                                         <div class="flex items-center gap-2">
                                             <a
                                                 class="text-[#FB773C] hover:text-[#EB3678] text-sm font-medium"
                                                 href="/admin/studenti/{item.id}">
                                                 Dettagli
                                             </a>
-                                            <button
-                                                class="text-blue-400 hover:text-blue-300 text-sm font-medium"
-                                                on:click={() => adminStatus(item.id)}>
-                                                {item.sdo ? "Rimuovi SdO" : "SdO"}
-                                            </button>
                                         </div>
                                     </td>
                                 {:else if activeView === 'courses'}

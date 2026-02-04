@@ -13,6 +13,7 @@
   let currentHour;
   let currentDay;
   let selectedHours = [];
+  let deleting = false;
 
   function barColor(free, total) {
     return free === 0 ? 'bg-red-500' : 'bg-green-500';
@@ -21,6 +22,29 @@
   function getHourLabel(hourIndex) {
     const hour = enabledHours[hourIndex];
     return hour ? hour.label : `${hourIndex + 1}°`;
+  }
+
+  async function deleteCourse() {
+    if (!confirm("Vuoi veramente eliminare questo corso? Tutte le iscrizioni verranno eliminate.")) {
+      return;
+    }
+    deleting = true;
+    try {
+      const response = await fetch('/api/admin/corso/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: corso.id })
+      });
+      const result = await response.json();
+      if (result.success) {
+        goto('/admin');
+      } else {
+        alert(result.message);
+      }
+    } catch (e) {
+      alert('Errore durante l\'eliminazione');
+    }
+    deleting = false;
   }
 
   async function openAttendanceModal(dayIndex, timeIndex) {
@@ -125,13 +149,34 @@
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
       <h1 class="text-2xl md:text-3xl font-bold text-white">{corso.nome}</h1>
-      <button 
-        class="inline-flex items-center justify-center gap-2 bg-[#FB773C] hover:bg-[#EB3678] text-white font-medium py-2.5 px-5 rounded-xl transition-all duration-200"
-        on:click={() => goto(`/docenti/courses/${corso.id}/edit`)}
-      >
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-        Modifica
-      </button>
+      <div class="flex flex-wrap gap-2">
+        <a 
+          href="/api/admin/corso/pdf-iscrizioni/{corso.id}"
+          class="inline-flex items-center justify-center gap-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 font-medium py-2.5 px-5 rounded-xl transition-all duration-200"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          PDF
+        </a>
+        <button 
+          class="inline-flex items-center justify-center gap-2 bg-[#FB773C] hover:bg-[#EB3678] text-white font-medium py-2.5 px-5 rounded-xl transition-all duration-200"
+          on:click={() => goto(`/docenti/courses/${corso.id}/edit`)}
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+          Modifica
+        </button>
+        <button 
+          class="inline-flex items-center justify-center gap-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 font-medium py-2.5 px-5 rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          on:click={deleteCourse}
+          disabled={deleting}
+        >
+          {#if deleting}
+            <div class="animate-spin rounded-full h-5 w-5 border-2 border-current border-t-transparent"></div>
+          {:else}
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+          {/if}
+          Elimina
+        </button>
+      </div>
     </div>
 
     <!-- Course Info Card -->

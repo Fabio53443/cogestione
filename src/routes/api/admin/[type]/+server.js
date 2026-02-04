@@ -108,14 +108,58 @@ export async function GET({ params, locals, url }) {
         }
         break;
       case "courses":
-        const [courseCount] = await db.select({ count: count() }).from(corsi);
-        total = courseCount.count;
-        items = await db.select().from(corsi).limit(limit).offset(offset);
+        if (search) {
+          const searchPattern = `%${search}%`;
+          const [courseCount] = await db
+            .select({ count: count() })
+            .from(corsi)
+            .where(or(
+              ilike(corsi.nome, searchPattern),
+              ilike(corsi.descrizione, searchPattern),
+              ilike(corsi.aula, searchPattern)
+            ));
+          total = courseCount.count;
+          items = await db
+            .select()
+            .from(corsi)
+            .where(or(
+              ilike(corsi.nome, searchPattern),
+              ilike(corsi.descrizione, searchPattern),
+              ilike(corsi.aula, searchPattern)
+            ))
+            .limit(limit)
+            .offset(offset);
+        } else {
+          const [courseCount] = await db.select({ count: count() }).from(corsi);
+          total = courseCount.count;
+          items = await db.select().from(corsi).limit(limit).offset(offset);
+        }
         break;
       case "teachers":
-        const [teacherCount] = await db.select({ count: count() }).from(professori);
-        total = teacherCount.count;
-        items = await db.select().from(professori).limit(limit).offset(offset);
+        if (search) {
+          const searchPattern = `%${search}%`;
+          const [teacherCount] = await db
+            .select({ count: count() })
+            .from(professori)
+            .where(or(
+              ilike(professori.nomeCompleto, searchPattern),
+              ilike(professori.email, searchPattern)
+            ));
+          total = teacherCount.count;
+          items = await db
+            .select()
+            .from(professori)
+            .where(or(
+              ilike(professori.nomeCompleto, searchPattern),
+              ilike(professori.email, searchPattern)
+            ))
+            .limit(limit)
+            .offset(offset);
+        } else {
+          const [teacherCount] = await db.select({ count: count() }).from(professori);
+          total = teacherCount.count;
+          items = await db.select().from(professori).limit(limit).offset(offset);
+        }
         break;
       default:
         return json(
