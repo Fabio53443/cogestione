@@ -193,6 +193,58 @@ export async function GET({ locals }) {
       .sort((a, b) => b.totalEnrollments - a.totalEnrollments)
       .slice(0, 10);
 
+    // Least popular courses (fewest enrollments)
+    const leastPopularCourses = [...courseAttendance]
+      .sort((a, b) => a.totalEnrollments - b.totalEnrollments)
+      .slice(0, 10);
+
+    // Courses per time slot (hour distribution) - based on enrollments
+    const coursesPerHour = [];
+    for (const hour of enabledHours) {
+      // Count unique courses that have enrollments for this hour
+      const hourCourses = await db
+        .selectDistinct({ idCorso: iscrizioni.idCorso })
+        .from(iscrizioni)
+        .where(eq(iscrizioni.ora, hour.id));
+      
+      coursesPerHour.push({
+        hourId: hour.id,
+        hourName: hour.name,
+        courseCount: hourCourses.length
+      });
+    }
+
+    // Courses per day (day distribution) - based on enrollments
+    const coursesPerDay = [];
+    for (const day of enabledDays) {
+      // Count unique courses that have enrollments for this day
+      const dayCourses = await db
+        .selectDistinct({ idCorso: iscrizioni.idCorso })
+        .from(iscrizioni)
+        .where(eq(iscrizioni.giorno, day.id));
+      
+      coursesPerDay.push({
+        dayId: day.id,
+        dayName: day.name,
+        courseCount: dayCourses.length
+      });
+    }
+
+    // Calculate averages
+    const avgEnrollmentsPerCourse = courseCount.count > 0 
+      ? Math.round((Number(enrollmentCount.count) / Number(courseCount.count)) * 10) / 10 
+      : 0;
+    
+    const avgCoursesPerStudent = studentCount.count > 0 
+      ? Math.round((Number(enrollmentCount.count) / Number(studentCount.count)) * 10) / 10 
+      : 0;
+
+    // Enrollment fill rate (how full courses are on average)
+    const coursesWithCapacity = courseAttendance.filter(c => c.totalEnrollments > 0);
+    const avgFillRate = coursesWithCapacity.length > 0
+      ? Math.round(coursesWithCapacity.reduce((acc, c) => acc + c.totalEnrollments, 0) / coursesWithCapacity.length)
+      : 0;
+
     return json({
       success: true,
       statistics: {
@@ -201,6 +253,9 @@ export async function GET({ locals }) {
           totalCourses: Number(courseCount.count),
           totalTeachers: Number(teacherCount.count),
           totalEnrollments: Number(enrollmentCount.count),
+          avgEnrollmentsPerCourse,
+          avgCoursesPerStudent,
+          avgFillRate
         },
         attendance: {
           present: Number(presentCount.count),
@@ -219,8 +274,10 @@ export async function GET({ locals }) {
           absences: Number(s.absences)
         })),
         studentsWithHoles: holesData,
-        classesCounts: classStats.map(c => ({ ...c, count: Number(c.count) })),
-        mostPopularCourses: capacityUsage
+        mostPopularCourses: capacityUsage,
+        leastPopularCourses,
+        coursesPerHour,
+        coursesPerDay
       }
     });
   } catch (error) {

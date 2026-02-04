@@ -173,7 +173,7 @@
       <div class="bg-[#252536] rounded-2xl p-6 border border-gray-700/50">
         <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
           <svg class="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"/></svg>
-          Corsi con più Assenze
+          Corsi con più assenze
         </h2>
         {#if statistics.worstCourses.length === 0}
           <p class="text-gray-400 text-center py-4">Nessun dato disponibile</p>
@@ -229,7 +229,7 @@
       <div class="bg-[#252536] rounded-2xl p-6 border border-gray-700/50">
         <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
           <svg class="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-          Studenti con più Assenze
+          Studenti con più assenze
         </h2>
         {#if statistics.studentsWithMostAbsences.length === 0}
           <p class="text-gray-400 text-center py-4">Nessuna assenza registrata</p>
@@ -252,26 +252,26 @@
         {/if}
       </div>
 
-      <!-- Students with Schedule Holes -->
+      <!-- Least Popular Courses -->
       <div class="bg-[#252536] rounded-2xl p-6 border border-gray-700/50">
         <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
-          <svg class="w-6 h-6 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-          Studenti con Buchi nell'Orario
+          <svg class="w-6 h-6 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"/></svg>
+          Corsi meno Popolari
         </h2>
-        {#if statistics.studentsWithHoles.length === 0}
-          <p class="text-gray-400 text-center py-4">Tutti gli studenti hanno l'orario completo</p>
+        {#if statistics.leastPopularCourses.length === 0}
+          <p class="text-gray-400 text-center py-4">Nessun dato disponibile</p>
         {:else}
           <div class="space-y-3">
-            {#each statistics.studentsWithHoles as student, i}
-              <a href="/admin/studenti/{student.id}" class="flex items-center gap-3 bg-[#1e1e2e] rounded-xl p-3 hover:bg-[#2a2a3e] transition-colors">
+            {#each statistics.leastPopularCourses as course, i}
+              <a href="/admin/corsi/{course.id}" class="flex items-center gap-3 bg-[#1e1e2e] rounded-xl p-3 hover:bg-[#2a2a3e] transition-colors">
                 <span class="w-8 h-8 flex items-center justify-center rounded-lg bg-orange-500/20 text-orange-400 font-bold text-sm">{i + 1}</span>
                 <div class="flex-1 min-w-0">
-                  <p class="text-white font-medium truncate">{student.nomeCompleto}</p>
-                  <p class="text-gray-500 text-xs">{student.classe || 'Nessuna classe'}</p>
+                  <p class="text-white font-medium truncate">{course.nome}</p>
+                  <p class="text-gray-500 text-xs">Aula {course.aula}</p>
                 </div>
                 <div class="text-right">
-                  <p class="text-orange-400 font-bold">{student.holes}</p>
-                  <p class="text-gray-500 text-xs">buchi</p>
+                  <p class="text-orange-400 font-bold">{course.totalEnrollments}</p>
+                  <p class="text-gray-500 text-xs">iscrizioni</p>
                 </div>
               </a>
             {/each}
@@ -281,26 +281,62 @@
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-      <!-- Classes Distribution -->
+      <!-- Courses per Hour -->
       <div class="bg-[#252536] rounded-2xl p-6 border border-gray-700/50">
         <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
-          <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-          Distribuzione per Classe
+          <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          Corsi per Fascia Oraria
         </h2>
-        {#if statistics.classesCounts.length === 0}
-          <p class="text-gray-400 text-center py-4">Nessuna classe registrata</p>
+        {#if statistics.coursesPerHour.length === 0}
+          <p class="text-gray-400 text-center py-4">Nessun dato disponibile</p>
         {:else}
-          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            {#each statistics.classesCounts as cls}
-              <div class="bg-[#1e1e2e] rounded-xl p-3 text-center">
-                <p class="text-white font-bold text-lg">{cls.classe}</p>
-                <p class="text-gray-400 text-sm">{cls.count} studenti</p>
+          <div class="space-y-3">
+            {#each statistics.coursesPerHour as hour}
+              {@const maxCourses = Math.max(...statistics.coursesPerHour.map(h => h.courseCount))}
+              {@const percentage = maxCourses > 0 ? (hour.courseCount / maxCourses) * 100 : 0}
+              <div class="bg-[#1e1e2e] rounded-xl p-3">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-white font-medium">{hour.hourName}</span>
+                  <span class="text-blue-400 font-bold">{hour.courseCount} corsi</span>
+                </div>
+                <div class="h-2 rounded-full bg-gray-700 overflow-hidden">
+                  <div class="h-full bg-blue-500 transition-all duration-500" style="width: {percentage}%"></div>
+                </div>
               </div>
             {/each}
           </div>
         {/if}
       </div>
 
+      <!-- Courses per Day -->
+      <div class="bg-[#252536] rounded-2xl p-6 border border-gray-700/50">
+        <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+          <svg class="w-6 h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+          Corsi per Giorno
+        </h2>
+        {#if statistics.coursesPerDay.length === 0}
+          <p class="text-gray-400 text-center py-4">Nessun dato disponibile</p>
+        {:else}
+          <div class="space-y-3">
+            {#each statistics.coursesPerDay as day}
+              {@const maxCourses = Math.max(...statistics.coursesPerDay.map(d => d.courseCount))}
+              {@const percentage = maxCourses > 0 ? (day.courseCount / maxCourses) * 100 : 0}
+              <div class="bg-[#1e1e2e] rounded-xl p-3">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-white font-medium">{day.dayName}</span>
+                  <span class="text-cyan-400 font-bold">{day.courseCount} corsi</span>
+                </div>
+                <div class="h-2 rounded-full bg-gray-700 overflow-hidden">
+                  <div class="h-full bg-cyan-500 transition-all duration-500" style="width: {percentage}%"></div>
+                </div>
+              </div>
+            {/each}
+          </div>
+        {/if}
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
       <!-- Most Popular Courses -->
       <div class="bg-[#252536] rounded-2xl p-6 border border-gray-700/50">
         <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
@@ -312,7 +348,7 @@
         {:else}
           <div class="space-y-3">
             {#each statistics.mostPopularCourses as course, i}
-              <div class="flex items-center gap-3 bg-[#1e1e2e] rounded-xl p-3">
+              <a href="/admin/corsi/{course.id}" class="flex items-center gap-3 bg-[#1e1e2e] rounded-xl p-3 hover:bg-[#2a2a3e] transition-colors">
                 <span class="w-8 h-8 flex items-center justify-center rounded-lg bg-purple-500/20 text-purple-400 font-bold text-sm">{i + 1}</span>
                 <div class="flex-1 min-w-0">
                   <p class="text-white font-medium truncate">{course.nome}</p>
@@ -322,10 +358,36 @@
                   <p class="text-purple-400 font-bold">{course.totalEnrollments}</p>
                   <p class="text-gray-500 text-xs">iscrizioni</p>
                 </div>
-              </div>
+              </a>
             {/each}
           </div>
         {/if}
+      </div>
+
+      <!-- Placeholder for future stats or keep one side empty -->
+      <div class="bg-[#252536] rounded-2xl p-6 border border-gray-700/50">
+        <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+          <svg class="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          Riepilogo Veloce
+        </h2>
+        <div class="space-y-4">
+          <div class="flex items-center justify-between p-3 bg-[#1e1e2e] rounded-xl">
+            <span class="text-gray-400">Corsi senza iscrizioni</span>
+            <span class="text-yellow-400 font-bold">{statistics.leastPopularCourses.filter(c => c.totalEnrollments === 0).length}</span>
+          </div>
+          <div class="flex items-center justify-between p-3 bg-[#1e1e2e] rounded-xl">
+            <span class="text-gray-400">Studenti con buchi</span>
+            <span class="text-orange-400 font-bold">{statistics.studentsWithHoles.length > 0 ? statistics.studentsWithHoles.length + '+' : '0'}</span>
+          </div>
+          <div class="flex items-center justify-between p-3 bg-[#1e1e2e] rounded-xl">
+            <span class="text-gray-400">Tasso presenze globale</span>
+            <span class="{getAttendanceColor(statistics.attendance.overallRate)} font-bold">{statistics.attendance.overallRate}%</span>
+          </div>
+          <div class="flex items-center justify-between p-3 bg-[#1e1e2e] rounded-xl">
+            <span class="text-gray-400">Corsi con assenze > 30%</span>
+            <span class="text-red-400 font-bold">{statistics.worstCourses.filter(c => c.absenceRate > 30).length}</span>
+          </div>
+        </div>
       </div>
     </div>
   {/if}
