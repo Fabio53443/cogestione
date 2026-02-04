@@ -19,6 +19,7 @@
   let currentCourse = null;
   let currentHour = null;
   let currentDay = null;
+  let currentCourseLength = 1;
 
   // Filter courses based on selection
   $: filteredCorsi = corsi.filter(corso => {
@@ -58,7 +59,9 @@
     try {
       const response = await fetch(`/api/studenti/attendance/${corso.id}?hour=${currentHour}&day=${currentDay}`);
       if (response.ok) {
-        selectedStudents = await response.json();
+        const data = await response.json();
+        selectedStudents = data.students;
+        currentCourseLength = data.courseLength || 1;
         showAttendanceModal = true;
       }
     } catch (err) {
@@ -210,6 +213,9 @@
 <AttendanceModal
   show={showAttendanceModal}
   students={selectedStudents}
+  courseId={currentCourse?.id}
+  courseLength={currentCourseLength}
+  courseName={currentCourse?.nome}
   onClose={closeModal}
   onUpdateAttendance={handleAttendanceUpdate}
 />

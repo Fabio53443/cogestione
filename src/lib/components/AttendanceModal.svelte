@@ -3,6 +3,9 @@
   export let students = [];
   export let onClose;
   export let onUpdateAttendance;
+  export let courseId = null;
+  export let courseLength = 1;
+  export let courseName = '';
 
   let selectedStudents = new Set();
   let selectAll = false;
@@ -41,10 +44,11 @@
 
   async function setAttendance(student, newState) {
     try {
-      const res = await fetch(`/api/studenti/attendance/${student.id}`, {
+      const res = await fetch(`/api/studenti/attendance/${courseId}`, {
         method: 'PUT',
         body: JSON.stringify({ 
-          studentId: student.id,
+          studentId: student.idStudente,
+          studentEnrollmentId: student.id,
           present: newState 
         }),
         headers: { 'Content-Type': 'application/json' }
@@ -66,13 +70,18 @@
 
   async function massUpdateAttendance(present) {
     try {
-      const promises = Array.from(selectedStudents).map(studentId => 
-        fetch(`/api/studenti/attendance/${studentId}`, {
+      const promises = Array.from(selectedStudents).map(enrollmentId => {
+        const student = students.find(s => s.id === enrollmentId);
+        return fetch(`/api/studenti/attendance/${courseId}`, {
           method: 'PUT',
-          body: JSON.stringify({ studentId, present }),
+          body: JSON.stringify({ 
+            studentId: student?.idStudente,
+            studentEnrollmentId: enrollmentId,
+            present 
+          }),
           headers: { 'Content-Type': 'application/json' }
-        })
-      );
+        });
+      });
       
       const results = await Promise.all(promises);
       const updates = await Promise.all(results.map(res => res.json()));
@@ -124,7 +133,14 @@
     <div class="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-gray-700/50">
       <div>
         <h2 class="text-lg sm:text-xl font-bold text-white">Appello</h2>
-        <p class="text-xs sm:text-sm text-gray-400 mt-0.5">{students.length} posti liberi</p>
+        <p class="text-xs sm:text-sm text-gray-400 mt-0.5">
+          {students.length} studenti
+          {#if courseLength > 1}
+            <span class="ml-2 px-2 py-0.5 bg-purple-500/20 text-purple-400 rounded-full text-xs">
+              Blocco {courseLength} ore
+            </span>
+          {/if}
+        </p>
       </div>
       <button 
         on:click={onClose}
