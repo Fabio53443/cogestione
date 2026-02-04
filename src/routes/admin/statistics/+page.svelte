@@ -200,7 +200,7 @@
       <div class="bg-[#252536] rounded-2xl p-6 border border-gray-700/50">
         <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
           <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
-          Corsi con più Presenze
+          Corsi con più presenze
         </h2>
         {#if statistics.bestCourses.length === 0}
           <p class="text-gray-400 text-center py-4">Nessun dato disponibile</p>
@@ -225,26 +225,26 @@
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-      <!-- Students with Most Absences -->
+      <!-- Most Popular Courses -->
       <div class="bg-[#252536] rounded-2xl p-6 border border-gray-700/50">
         <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
-          <svg class="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-          Studenti con più assenze
+          <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
+          Corsi più Popolari
         </h2>
-        {#if statistics.studentsWithMostAbsences.length === 0}
-          <p class="text-gray-400 text-center py-4">Nessuna assenza registrata</p>
+        {#if statistics.mostPopularCourses.length === 0}
+          <p class="text-gray-400 text-center py-4">Nessun corso disponibile</p>
         {:else}
           <div class="space-y-3">
-            {#each statistics.studentsWithMostAbsences as student, i}
-              <a href="/admin/studenti/{student.id}" class="flex items-center gap-3 bg-[#1e1e2e] rounded-xl p-3 hover:bg-[#2a2a3e] transition-colors">
-                <span class="w-8 h-8 flex items-center justify-center rounded-lg bg-red-500/20 text-red-400 font-bold text-sm">{i + 1}</span>
+            {#each statistics.mostPopularCourses as course, i}
+              <a href="/admin/corsi/{course.id}" class="flex items-center gap-3 bg-[#1e1e2e] rounded-xl p-3 hover:bg-[#2a2a3e] transition-colors">
+                <span class="w-8 h-8 flex items-center justify-center rounded-lg bg-purple-500/20 text-purple-400 font-bold text-sm">{i + 1}</span>
                 <div class="flex-1 min-w-0">
-                  <p class="text-white font-medium truncate">{student.nomeCompleto}</p>
-                  <p class="text-gray-500 text-xs">{student.classe || 'Nessuna classe'}</p>
+                  <p class="text-white font-medium truncate">{course.nome}</p>
+                  <p class="text-gray-500 text-xs">Aula {course.aula}</p>
                 </div>
                 <div class="text-right">
-                  <p class="text-red-400 font-bold">{student.absences}</p>
-                  <p class="text-gray-500 text-xs">assenze</p>
+                  <p class="text-purple-400 font-bold">{course.totalEnrollments}</p>
+                  <p class="text-gray-500 text-xs">iscrizioni</p>
                 </div>
               </a>
             {/each}
@@ -337,26 +337,26 @@
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-      <!-- Most Popular Courses -->
+      <!-- Students with Most Absences -->
       <div class="bg-[#252536] rounded-2xl p-6 border border-gray-700/50">
         <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
-          <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
-          Corsi più Popolari
+          <svg class="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+          Studenti con più Assenze
         </h2>
-        {#if statistics.mostPopularCourses.length === 0}
-          <p class="text-gray-400 text-center py-4">Nessun corso disponibile</p>
+        {#if statistics.studentsWithMostAbsences.length === 0}
+          <p class="text-gray-400 text-center py-4">Nessuna assenza registrata</p>
         {:else}
           <div class="space-y-3">
-            {#each statistics.mostPopularCourses as course, i}
-              <a href="/admin/corsi/{course.id}" class="flex items-center gap-3 bg-[#1e1e2e] rounded-xl p-3 hover:bg-[#2a2a3e] transition-colors">
-                <span class="w-8 h-8 flex items-center justify-center rounded-lg bg-purple-500/20 text-purple-400 font-bold text-sm">{i + 1}</span>
+            {#each statistics.studentsWithMostAbsences as student, i}
+              <a href="/admin/studenti/{student.id}" class="flex items-center gap-3 bg-[#1e1e2e] rounded-xl p-3 hover:bg-[#2a2a3e] transition-colors">
+                <span class="w-8 h-8 flex items-center justify-center rounded-lg bg-red-500/20 text-red-400 font-bold text-sm">{i + 1}</span>
                 <div class="flex-1 min-w-0">
-                  <p class="text-white font-medium truncate">{course.nome}</p>
-                  <p class="text-gray-500 text-xs">Aula {course.aula}</p>
+                  <p class="text-white font-medium truncate">{student.nomeCompleto}</p>
+                  <p class="text-gray-500 text-xs">{student.classe || 'Nessuna classe'}</p>
                 </div>
                 <div class="text-right">
-                  <p class="text-purple-400 font-bold">{course.totalEnrollments}</p>
-                  <p class="text-gray-500 text-xs">iscrizioni</p>
+                  <p class="text-red-400 font-bold">{student.absences}</p>
+                  <p class="text-gray-500 text-xs">assenze</p>
                 </div>
               </a>
             {/each}
@@ -364,7 +364,7 @@
         {/if}
       </div>
 
-      <!-- Placeholder for future stats or keep one side empty -->
+      <!-- Riepilogo Veloce -->
       <div class="bg-[#252536] rounded-2xl p-6 border border-gray-700/50">
         <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
           <svg class="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
