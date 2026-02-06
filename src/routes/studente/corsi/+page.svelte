@@ -53,7 +53,7 @@
 
 <Alert type={alertType} message={alertMessage} show={showAlert} />
 
-<div class="max-w-4xl mx-auto px-4">
+<div class="max-w-4xl mx-auto px-4 overflow-hidden">
     <div class="mb-8">
         <h1 class="text-2xl md:text-3xl font-bold text-white mb-6">Corsi Disponibili</h1>
         
@@ -119,25 +119,25 @@
     {:else}
         <div class="grid gap-4">
             {#each filteredCorsi as corso (corso.id)}
-                <div class="bg-[#252536] rounded-xl p-5 border border-gray-700/50 hover:border-gray-600 transition-colors">
+                <div class="bg-[#252536] rounded-xl p-4 sm:p-5 border border-gray-700/50 hover:border-gray-600 transition-colors overflow-hidden">
                     <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-4">
-                        <div class="flex-grow min-w-0">
+                        <div class="flex-grow min-w-0 overflow-hidden">
                             <h3 class="text-lg font-semibold text-white truncate">{corso.nome}</h3>
-                            <p class="text-gray-400 text-sm mt-1 line-clamp-2">{corso.descrizione}</p>
+                            <p class="text-gray-400 text-sm mt-1 line-clamp-2 break-words">{corso.descrizione}</p>
                         </div>
                     </div>
                     <div class="flex flex-wrap gap-2 mb-4">
-                        <span class="inline-flex items-center gap-1.5 bg-[#1e1e2e] text-gray-300 text-sm px-3 py-1.5 rounded-lg">
-                            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                            {corso.aula}
+                        <span class="inline-flex items-center gap-1.5 bg-[#1e1e2e] text-gray-300 text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg">
+                            <svg class="w-3 h-3 sm:w-4 sm:h-4 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                            <span class="truncate">{corso.aula}</span>
                         </span>
-                        <span class="inline-flex items-center gap-1.5 bg-[#1e1e2e] text-gray-300 text-sm px-3 py-1.5 rounded-lg">
-                            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span class="inline-flex items-center gap-1.5 bg-[#1e1e2e] text-gray-300 text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg">
+                            <svg class="w-3 h-3 sm:w-4 sm:h-4 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                             {corso.length}h
                         </span>
-                        <span class="inline-flex items-center gap-1.5 bg-[#1e1e2e] text-gray-300 text-sm px-3 py-1.5 rounded-lg">
-                            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                            {corso.availability.map(d => days[d].slice(0,3)).join(', ')}
+                        <span class="inline-flex items-center gap-1.5 bg-[#1e1e2e] text-gray-300 text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg">
+                            <svg class="w-3 h-3 sm:w-4 sm:h-4 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            <span class="truncate">{corso.availability.map(d => days[d].slice(0,3)).join(', ')}</span>
                         </span>
                     </div>
                     <a href="/studente/corsi/{corso.id}" class="block w-full bg-[#FB773C] hover:bg-[#EB3678] text-white text-center font-semibold py-2.5 px-4 rounded-xl transition-all duration-200">
