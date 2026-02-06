@@ -38,30 +38,32 @@ export async function GET({ locals }) {
       .where(isNull(iscrizioni.presente));
 
     // Attendance by day
+    // Note: iscrizioni.giorno stores the INDEX (0, 1, 2...) not the day.id
     const attendanceByDay = [];
-    for (const day of enabledDays) {
+    for (let i = 0; i < enabledDays.length; i++) {
+      const day = enabledDays[i];
       const [dayPresent] = await db
         .select({ count: count() })
         .from(iscrizioni)
-        .where(and(eq(iscrizioni.giorno, day.id), eq(iscrizioni.presente, true)));
+        .where(and(eq(iscrizioni.giorno, i), eq(iscrizioni.presente, true)));
 
       const [dayAbsent] = await db
         .select({ count: count() })
         .from(iscrizioni)
-        .where(and(eq(iscrizioni.giorno, day.id), eq(iscrizioni.presente, false)));
+        .where(and(eq(iscrizioni.giorno, i), eq(iscrizioni.presente, false)));
 
       const [dayNotRecorded] = await db
         .select({ count: count() })
         .from(iscrizioni)
-        .where(and(eq(iscrizioni.giorno, day.id), isNull(iscrizioni.presente)));
+        .where(and(eq(iscrizioni.giorno, i), isNull(iscrizioni.presente)));
 
       const [dayTotal] = await db
         .select({ count: count() })
         .from(iscrizioni)
-        .where(eq(iscrizioni.giorno, day.id));
+        .where(eq(iscrizioni.giorno, i));
 
       attendanceByDay.push({
-        dayId: day.id,
+        dayId: i,
         dayName: day.name,
         present: Number(dayPresent.count),
         absent: Number(dayAbsent.count),
@@ -199,32 +201,36 @@ export async function GET({ locals }) {
       .slice(0, 10);
 
     // Courses per time slot (hour distribution) - based on enrollments
+    // Note: iscrizioni.ora stores the INDEX (0, 1, 2...) not the hour.id
     const coursesPerHour = [];
-    for (const hour of enabledHours) {
-      // Count unique courses that have enrollments for this hour
+    for (let i = 0; i < enabledHours.length; i++) {
+      const hour = enabledHours[i];
+      // Count unique courses that have enrollments for this hour index
       const hourCourses = await db
         .selectDistinct({ idCorso: iscrizioni.idCorso })
         .from(iscrizioni)
-        .where(eq(iscrizioni.ora, hour.id));
+        .where(eq(iscrizioni.ora, i));
       
       coursesPerHour.push({
-        hourId: hour.id,
-        hourName: hour.name,
+        hourId: i,
+        hourName: hour.label,
         courseCount: hourCourses.length
       });
     }
 
     // Courses per day (day distribution) - based on enrollments
+    // Note: iscrizioni.giorno stores the INDEX (0, 1, 2...) not the day.id
     const coursesPerDay = [];
-    for (const day of enabledDays) {
-      // Count unique courses that have enrollments for this day
+    for (let i = 0; i < enabledDays.length; i++) {
+      const day = enabledDays[i];
+      // Count unique courses that have enrollments for this day index
       const dayCourses = await db
         .selectDistinct({ idCorso: iscrizioni.idCorso })
         .from(iscrizioni)
-        .where(eq(iscrizioni.giorno, day.id));
+        .where(eq(iscrizioni.giorno, i));
       
       coursesPerDay.push({
-        dayId: day.id,
+        dayId: i,
         dayName: day.name,
         courseCount: dayCourses.length
       });
