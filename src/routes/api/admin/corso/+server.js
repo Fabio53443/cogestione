@@ -80,3 +80,45 @@ export const POST = async ({ locals, request }) => {
         return json({ success: false, message: 'Errore durante la creazione del corso.' }, { status: 500 });
     }
 };
+
+// Update an existing course (admin only)
+export const PUT = async ({ locals, request }) => {
+    if (!(await isAdmin(locals))) {
+        return json({ success: false, message: 'Unauthorized.' }, { status: 401 });
+    }
+
+    try {
+        const formData = await request.json();
+        const { id, nome, descrizione, aula, numPosti, length, availability } = formData;
+
+        if (!id) {
+            return json({ success: false, message: 'Course ID is required.' }, { status: 400 });
+        }
+
+        // Check if course exists
+        const [existingCourse] = await db.select().from(corsi).where(eq(corsi.id, id));
+        if (!existingCourse) {
+            return json({ success: false, message: 'Corso non trovato.' }, { status: 404 });
+        }
+
+        // Build update object with only provided fields
+        const updateData = {};
+        if (nome !== undefined) updateData.nome = nome;
+        if (descrizione !== undefined) updateData.descrizione = descrizione;
+        if (aula !== undefined) updateData.aula = aula;
+        if (numPosti !== undefined) updateData.numPosti = parseInt(numPosti);
+        if (length !== undefined) updateData.length = parseInt(length);
+        if (availability !== undefined) updateData.availability = availability;
+
+        const [updatedCourse] = await db
+            .update(corsi)
+            .set(updateData)
+            .where(eq(corsi.id, id))
+            .returning();
+
+        return json({ success: true, message: 'Corso aggiornato con successo!', course: updatedCourse });
+    } catch (error) {
+        console.error('Error updating course:', error);
+        return json({ success: false, message: 'Errore durante l\'aggiornamento del corso.' }, { status: 500 });
+    }
+};
