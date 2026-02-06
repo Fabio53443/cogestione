@@ -200,39 +200,61 @@ export async function GET({ locals }) {
       .sort((a, b) => a.totalEnrollments - b.totalEnrollments)
       .slice(0, 10);
 
-    // Courses per time slot (hour distribution) - based on enrollments
-    // Note: iscrizioni.ora stores the INDEX (0, 1, 2...) not the hour.id
+    // Courses per time slot (hour distribution) - based on course availability
+    // Count courses that have capacity > 0 for each hour slot
+    const allCourses = await db.select({
+      id: corsi.id,
+      nome: corsi.nome,
+      availability: corsi.availability,
+      schedule: corsi.schedule
+    }).from(corsi);
+
     const coursesPerHour = [];
-    for (let i = 0; i < enabledHours.length; i++) {
-      const hour = enabledHours[i];
-      // Count unique courses that have enrollments for this hour index
-      const hourCourses = await db
-        .selectDistinct({ idCorso: iscrizioni.idCorso })
-        .from(iscrizioni)
-        .where(eq(iscrizioni.ora, i));
+    for (let hourIdx = 0; hourIdx < enabledHours.length; hourIdx++) {
+      const hour = enabledHours[hourIdx];
+      // Count courses that have at least one day with capacity > 0 for this hour
+      let courseCount = 0;
+      for (const course of allCourses) {
+        // Check if any enabled day has capacity for this hour
+        let hasCapacityThisHour = false;
+        for (let dayIdx = 0; dayIdx < enabledDays.length; dayIdx++) {
+          if (course.schedule && course.schedule[dayIdx] && course.schedule[dayIdx][hourIdx] > 0) {
+            hasCapacityThisHour = true;
+            break;
+          }
+        }
+        if (hasCapacityThisHour) {
+          courseCount++;
+        }
+      }
       
       coursesPerHour.push({
-        hourId: i,
+        hourId: hourIdx,
         hourName: hour.label,
-        courseCount: hourCourses.length
+        courseCount
       });
     }
 
-    // Courses per day (day distribution) - based on enrollments
-    // Note: iscrizioni.giorno stores the INDEX (0, 1, 2...) not the day.id
+    // Courses per day (day distribution) - based on course availability
     const coursesPerDay = [];
-    for (let i = 0; i < enabledDays.length; i++) {
-      const day = enabledDays[i];
-      // Count unique courses that have enrollments for this day index
-      const dayCourses = await db
-        .selectDistinct({ idCorso: iscrizioni.idCorso })
-        .from(iscrizioni)
-        .where(eq(iscrizioni.giorno, i));
+    for (let dayIdx = 0; dayIdx < enabledDays.length; dayIdx++) {
+      const day = enabledDays[dayIdx];
+      // Count courses that are available on this day (have capacity for at least one hour)
+      let courseCount = 0;
+      for (const course of allCourses) {
+        // Check if this course has capacity for any hour on this day
+        if (course.schedule && course.schedule[dayIdx]) {
+          const hasCapacityThisDay = course.schedule[dayIdx].some(seats => seats > 0);
+          if (hasCapacityThisDay) {
+            courseCount++;
+          }
+        }
+      }
       
       coursesPerDay.push({
-        dayId: i,
+        dayId: dayIdx,
         dayName: day.name,
-        courseCount: dayCourses.length
+        courseCount
       });
     }
 
