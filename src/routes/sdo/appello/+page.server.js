@@ -12,6 +12,16 @@ export async function load({ locals }) {
 
   const config = await getConfig();
 
+  // Check if SDO is allowed to take attendance
+  if (!config.sdoCanTakeAttendance) {
+    return {
+      pageName: 'Appello',
+      corsi: [],
+      siteConfig: config,
+      attendanceDisabled: true
+    };
+  }
+
   try {
     // Get all courses with their teachers
     const allCorsi = await db.select({
@@ -30,7 +40,8 @@ export async function load({ locals }) {
     return {
       pageName: 'Appello',
       corsi: allCorsi,
-      siteConfig: config
+      siteConfig: config,
+      attendanceDisabled: false
     };
   } catch (error) {
     console.error('Error loading courses:', error);
@@ -38,7 +49,8 @@ export async function load({ locals }) {
       pageName: 'Appello',
       corsi: [],
       error: 'Errore durante il caricamento dei corsi.',
-      siteConfig: config
+      siteConfig: config,
+      attendanceDisabled: false
     };
   }
 }

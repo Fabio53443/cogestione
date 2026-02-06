@@ -2,7 +2,7 @@
   import AttendanceModal from '$lib/components/AttendanceModal.svelte';
   
   export let data;
-  const { corsi, siteConfig, error } = data;
+  $: ({ corsi, siteConfig, error, attendanceDisabled } = data);
 
   // Get enabled days and hours from config
   $: enabledDays = siteConfig?.days?.filter(d => d.enabled) || [];
@@ -97,6 +97,16 @@
       <p class="text-gray-400 mt-1">Seleziona giorno, ora e corso per fare l'appello</p>
     </div>
   </div>
+
+  {#if attendanceDisabled}
+    <div class="text-center py-16 bg-[#252536] rounded-2xl border border-gray-700/50">
+      <svg class="w-20 h-20 mx-auto mb-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+      </svg>
+      <h2 class="text-xl font-semibold text-white mb-2">Appello Disabilitato</h2>
+      <p class="text-gray-400">L'amministratore ha disabilitato la possibilità per SDO di fare l'appello.</p>
+    </div>
+  {:else}
 
   {#if error}
     <div class="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-xl mb-6">
@@ -207,6 +217,8 @@
       <p class="text-lg font-medium text-white mb-2">Seleziona giorno e ora</p>
       <p>Per visualizzare i corsi e fare l'appello, seleziona prima un giorno e un'ora dai filtri sopra.</p>
     </div>
+  {/if}
+
   {/if}
 </div>
 

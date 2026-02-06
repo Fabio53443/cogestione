@@ -1,6 +1,6 @@
 <script>
   export let data;
-  const { user, corsi, error, siteConfig, isSdO } = data;
+  const { user, corsi, error, siteConfig, isSdO, sdoCanTakeAttendance } = data;
   import Alert from "$lib/components/Alert.svelte";
   
   // Get enabled days from config
@@ -59,9 +59,11 @@
             <p class="text-gray-400 text-sm">Sei parte del servizio d'ordine</p>
           </div>
         </div>
-        <a href="/sdo/appello" class="inline-flex items-center justify-center bg-[#FB773C] hover:bg-[#EB3678] text-white font-semibold py-2.5 px-5 rounded-xl transition-all duration-200 hover:shadow-lg hover:shadow-[#FB773C]/20">
-          Fai l'appello
-        </a>
+        {#if sdoCanTakeAttendance}
+          <a href="/sdo/appello" class="inline-flex items-center justify-center bg-[#FB773C] hover:bg-[#EB3678] text-white font-semibold py-2.5 px-5 rounded-xl transition-all duration-200 hover:shadow-lg hover:shadow-[#FB773C]/20">
+            Fai l'appello
+          </a>
+        {/if}
       </div>
     </div>
   {/if}

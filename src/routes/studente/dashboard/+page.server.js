@@ -43,7 +43,8 @@ export async function load({ locals }) {
       user: locals.user,
       corsi: corsiIscritto,
       siteConfig: config,
-      isSdO: userIsSdO
+      isSdO: userIsSdO,
+      sdoCanTakeAttendance: config.sdoCanTakeAttendance !== false
     };
   } catch (error) {
     console.error('Error fetching courses:', error);
@@ -54,7 +55,8 @@ export async function load({ locals }) {
       corsi: [],
       error: 'Si è verificato un errore durante il caricamento dei corsi.',
       siteConfig: config,
-      isSdO: userIsSdO
+      isSdO: userIsSdO,
+      sdoCanTakeAttendance: config.sdoCanTakeAttendance !== false
     };
   }
 }
