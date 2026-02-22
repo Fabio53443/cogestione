@@ -3,6 +3,7 @@ import { db } from '$lib/db/db'; // Assuming you're using Drizzle ORM for your d
 import bcrypt from 'bcryptjs'; // For hashing passwords
 import { professori, studenti, iscrizioni, corsi } from '$lib/db/models';
 import { eq } from 'drizzle-orm';
+import crypto from 'crypto';
 
 export const POST = async ({ request, locals }) => {
     try {
@@ -87,3 +88,52 @@ export const DELETE = async ({ request, locals }) => {
 }
 
 }
+
+export const PUT = async ({ request, locals }) => {
+  if (!locals.user) {
+    return json({ success: false, message: "Unauthorized" }, { status: 401 });
+  }
+
+  const user = await db
+    .select({ admin: studenti.admin })
+    .from(studenti)
+    .where(eq(studenti.id, locals.user.id));
+
+  if (!user[0]?.admin) {
+    return json({ success: false, message: "Unauthorized" }, { status: 401 });
+  }
+
+  try {
+    const { id, password, generate } = await request.json();
+
+    if (!id) {
+      return json({ success: false, message: 'ID organizzatore mancante.' }, { status: 400 });
+    }
+
+    let newPassword = password;
+
+    // Generate a random password if requested
+    if (generate) {
+      newPassword = crypto.randomBytes(6).toString('base64url');
+    }
+
+    if (!newPassword) {
+      return json({ success: false, message: 'Password mancante.' }, { status: 400 });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await db.update(professori)
+      .set({ hashedPass: hashedPassword })
+      .where(eq(professori.id, id));
+
+    return json({ 
+      success: true, 
+      message: 'Password aggiornata con successo.',
+      newPassword: generate ? newPassword : undefined
+    });
+  } catch (error) {
+    console.error('Error resetting password:', error);
+    return json({ success: false, message: 'Errore durante il reset della password.' }, { status: 500 });
+  }
+};

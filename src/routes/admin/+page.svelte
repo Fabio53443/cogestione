@@ -234,6 +234,48 @@
         }        
     }
 
+    // Password reset for organizers
+    let resetPasswordModal = { show: false, docenteId: null, docenteName: '', newPassword: '', generatedPassword: null, loading: false, error: null, success: false };
+
+    function openResetPasswordModal(id, name) {
+        resetPasswordModal = { show: true, docenteId: id, docenteName: name, newPassword: '', generatedPassword: null, loading: false, error: null, success: false };
+    }
+
+    function closeResetPasswordModal() {
+        resetPasswordModal = { show: false, docenteId: null, docenteName: '', newPassword: '', generatedPassword: null, loading: false, error: null, success: false };
+    }
+
+    async function resetPassword(generate = false) {
+        resetPasswordModal.loading = true;
+        resetPasswordModal.error = null;
+        resetPasswordModal.generatedPassword = null;
+
+        try {
+            const response = await fetch('/api/admin/docente', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id: resetPasswordModal.docenteId,
+                    password: generate ? undefined : resetPasswordModal.newPassword,
+                    generate
+                })
+            });
+            const data = await response.json();
+            if (data.success) {
+                resetPasswordModal.success = true;
+                if (data.newPassword) {
+                    resetPasswordModal.generatedPassword = data.newPassword;
+                }
+            } else {
+                resetPasswordModal.error = data.message;
+            }
+        } catch (e) {
+            resetPasswordModal.error = 'Errore durante il reset della password.';
+        }
+
+        resetPasswordModal.loading = false;
+    }
+
     async function downloadSelectedIscrizioni() {
         if (selectedCourses.length === 0) {
             alert("Seleziona almeno un corso");
@@ -488,6 +530,11 @@
                                             <a href="/admin/docenti/{item.id}" class="text-[#FB773C] hover:text-[#EB3678] text-sm font-medium">
                                                 Impersona
                                             </a>
+                                            <button
+                                                class="text-blue-400 hover:text-blue-300 text-sm font-medium"
+                                                on:click={() => openResetPasswordModal(item.id, item.nomeCompleto)}>
+                                                Reset Password
+                                            </button>
                                             <button
                                                 class="text-red-400 hover:text-red-300 text-sm font-medium"
                                                 on:click={() => deleteDocente(item.id)}>
@@ -750,4 +797,107 @@
             </form>
         </div>
     </div>
+{/if}
+
+<!-- Reset Password Modal -->
+{#if resetPasswordModal.show}
+<!-- svelte-ignore a11y-click-events-have-key-events -->
+<!-- svelte-ignore a11y-no-static-element-interactions -->
+<div class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+     on:click|self={closeResetPasswordModal}>
+    <div class="bg-[#252536] rounded-2xl w-full max-w-md shadow-2xl border border-gray-700/50">
+        <!-- Header -->
+        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-700/50">
+            <div>
+                <h2 class="text-lg font-bold text-white">Reset Password</h2>
+                <p class="text-sm text-gray-400 mt-0.5">{resetPasswordModal.docenteName}</p>
+            </div>
+            <button on:click={closeResetPasswordModal} class="text-gray-400 hover:text-white transition-colors" title="Chiudi">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <div class="px-6 py-5 space-y-4">
+            {#if resetPasswordModal.success}
+                <!-- Success state -->
+                <div class="bg-green-500/10 border border-green-500/30 text-green-400 px-4 py-3 rounded-xl text-sm">
+                    Password aggiornata con successo!
+                </div>
+                {#if resetPasswordModal.generatedPassword}
+                    <div class="bg-[#1e1e2e] rounded-xl p-4 border border-gray-700/50">
+                        <p class="text-gray-400 text-xs mb-2">Nuova password generata (copiala ora, non verrà mostrata di nuovo):</p>
+                        <div class="flex items-center gap-2">
+                            <code class="flex-1 text-white text-lg font-mono bg-[#252536] px-3 py-2 rounded-lg select-all">
+                                {resetPasswordModal.generatedPassword}
+                            </code>
+                            <button 
+                                class="p-2 text-gray-400 hover:text-white bg-[#252536] rounded-lg transition-colors"
+                                title="Copia"
+                                on:click={() => navigator.clipboard.writeText(resetPasswordModal.generatedPassword)}
+                            >
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                {/if}
+                <div class="flex justify-end">
+                    <button
+                        class="px-4 py-2 bg-[#FB773C] hover:bg-[#EB3678] text-white font-medium rounded-xl transition-colors"
+                        on:click={closeResetPasswordModal}
+                    >
+                        Chiudi
+                    </button>
+                </div>
+            {:else}
+                <!-- Form state -->
+                {#if resetPasswordModal.error}
+                    <div class="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-xl text-sm">
+                        {resetPasswordModal.error}
+                    </div>
+                {/if}
+
+                <!-- Generate password button -->
+                <button
+                    class="w-full px-4 py-3 bg-[#FB773C] hover:bg-[#EB3678] text-white font-medium rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    on:click={() => resetPassword(true)}
+                    disabled={resetPasswordModal.loading}
+                >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    </svg>
+                    Genera password casuale
+                </button>
+
+                <div class="flex items-center gap-3">
+                    <div class="flex-1 h-px bg-gray-700"></div>
+                    <span class="text-gray-500 text-xs uppercase">oppure</span>
+                    <div class="flex-1 h-px bg-gray-700"></div>
+                </div>
+
+                <!-- Manual password input -->
+                <div>
+                    <label class="block text-sm text-gray-400 mb-1.5" for="reset-password-input">Imposta manualmente</label>
+                    <input
+                        id="reset-password-input"
+                        type="text"
+                        bind:value={resetPasswordModal.newPassword}
+                        placeholder="Nuova password"
+                        class="w-full bg-[#1e1e2e] border border-gray-700 rounded-xl py-2.5 px-4 text-white placeholder-gray-500 focus:outline-none focus:border-[#FB773C] transition-colors text-sm"
+                    />
+                </div>
+                <button
+                    class="w-full px-4 py-2.5 bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white font-medium rounded-xl border border-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    on:click={() => resetPassword(false)}
+                    disabled={resetPasswordModal.loading || !resetPasswordModal.newPassword}
+                >
+                    {resetPasswordModal.loading ? 'Salvando...' : 'Imposta password'}
+                </button>
+            {/if}
+        </div>
+    </div>
+</div>
 {/if}
