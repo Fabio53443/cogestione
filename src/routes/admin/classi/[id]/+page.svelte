@@ -248,7 +248,6 @@
         </thead>
         <tbody>
           {#each filteredStudents as student (student.id)}
-            {@const summary = getStudentDaySummary(student.id)}
             <tr class="border-b border-gray-700/30 hover:bg-[#1e1e2e]/50 transition-colors">
               <td class="px-4 py-3 sticky left-0 bg-[#252536] z-10">
                 <a 
