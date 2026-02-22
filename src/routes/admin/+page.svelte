@@ -18,6 +18,42 @@
     let searchQuery = '';
     let searchTimeout;
 
+    // Sorting
+    let sortColumn = null;
+    let sortDirection = 'asc';
+
+    function toggleSort(column) {
+        if (sortColumn === column) {
+            sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            sortColumn = column;
+            sortDirection = 'asc';
+        }
+    }
+
+    $: sortedData = (() => {
+        if (!sortColumn || !listData.length) return listData;
+        return [...listData].sort((a, b) => {
+            let valA = a[sortColumn];
+            let valB = b[sortColumn];
+            // Handle nulls
+            if (valA == null) valA = '';
+            if (valB == null) valB = '';
+            // Booleans
+            if (typeof valA === 'boolean') {
+                return sortDirection === 'asc' ? (valA === valB ? 0 : valA ? 1 : -1) : (valA === valB ? 0 : valA ? -1 : 1);
+            }
+            // Numbers
+            if (typeof valA === 'number' && typeof valB === 'number') {
+                return sortDirection === 'asc' ? valA - valB : valB - valA;
+            }
+            // Strings
+            const strA = String(valA).toLowerCase();
+            const strB = String(valB).toLowerCase();
+            return sortDirection === 'asc' ? strA.localeCompare(strB) : strB.localeCompare(strA);
+        });
+    })();
+
     // Course creation modal
     let showCourseModal = false;
     let courseFormError = '';
@@ -123,6 +159,8 @@
     async function fetchData(type, page = 1) {
         loading = true;
         error = null;
+        sortColumn = null;
+        sortDirection = 'asc';
         try {
             let url = `/api/admin/${type}?page=${page}&limit=${pagination.limit}`;
             if (searchQuery) {
@@ -235,14 +273,22 @@
     }
 
     // Password reset for organizers
-    let resetPasswordModal = { show: false, docenteId: null, docenteName: '', newPassword: '', generatedPassword: null, loading: false, error: null, success: false };
+    let resetPasswordModal = { show: false, docenteId: null, docenteName: '', docenteEmail: '', newPassword: '', generatedPassword: null, loading: false, error: null, success: false };
+    let copiedField = null;
 
-    function openResetPasswordModal(id, name) {
-        resetPasswordModal = { show: true, docenteId: id, docenteName: name, newPassword: '', generatedPassword: null, loading: false, error: null, success: false };
+    function copyToClipboard(text, field) {
+        navigator.clipboard.writeText(text);
+        copiedField = field;
+        setTimeout(() => { copiedField = null; }, 2000);
+    }
+
+    function openResetPasswordModal(id, name, email) {
+        copiedField = null;
+        resetPasswordModal = { show: true, docenteId: id, docenteName: name, docenteEmail: email, newPassword: '', generatedPassword: null, loading: false, error: null, success: false };
     }
 
     function closeResetPasswordModal() {
-        resetPasswordModal = { show: false, docenteId: null, docenteName: '', newPassword: '', generatedPassword: null, loading: false, error: null, success: false };
+        resetPasswordModal = { show: false, docenteId: null, docenteName: '', docenteEmail: '', newPassword: '', generatedPassword: null, loading: false, error: null, success: false };
     }
 
     async function resetPassword(generate = false) {
@@ -436,17 +482,75 @@
                                     />
                                 </th>
                             {/if}
-                            <th class="px-4 py-3 text-left">ID</th>
-                            <th class="px-4 py-3 text-left">Nome</th>
+                            <th class="px-4 py-3 text-left cursor-pointer select-none hover:text-white transition-colors" on:click={() => toggleSort('id')}>
+                                <div class="flex items-center gap-1">
+                                    ID
+                                    {#if sortColumn === 'id'}
+                                        <span class="text-[#FB773C]">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                                    {/if}
+                                </div>
+                            </th>
+                            <th class="px-4 py-3 text-left cursor-pointer select-none hover:text-white transition-colors" on:click={() => toggleSort(activeView === 'courses' ? 'nome' : 'nomeCompleto')}>
+                                <div class="flex items-center gap-1">
+                                    Nome
+                                    {#if sortColumn === 'nome' || sortColumn === 'nomeCompleto'}
+                                        <span class="text-[#FB773C]">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                                    {/if}
+                                </div>
+                            </th>
                             {#if activeView === 'students'}
-                                <th class="px-4 py-3 text-left">Classe</th>
-                                <th class="px-4 py-3 text-left">Email</th>
+                                <th class="px-4 py-3 text-left cursor-pointer select-none hover:text-white transition-colors" on:click={() => toggleSort('classe')}>
+                                    <div class="flex items-center gap-1">
+                                        Classe
+                                        {#if sortColumn === 'classe'}
+                                            <span class="text-[#FB773C]">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                                        {/if}
+                                    </div>
+                                </th>
+                                <th class="px-4 py-3 text-left cursor-pointer select-none hover:text-white transition-colors" on:click={() => toggleSort('email')}>
+                                    <div class="flex items-center gap-1">
+                                        Email
+                                        {#if sortColumn === 'email'}
+                                            <span class="text-[#FB773C]">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                                        {/if}
+                                    </div>
+                                </th>
+                                <th class="px-4 py-3 text-left cursor-pointer select-none hover:text-white transition-colors" on:click={() => toggleSort('sdo')}>
+                                    <div class="flex items-center gap-1">
+                                        SdO
+                                        {#if sortColumn === 'sdo'}
+                                            <span class="text-[#FB773C]">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                                        {/if}
+                                    </div>
+                                </th>
+                                <th class="px-4 py-3 text-left cursor-pointer select-none hover:text-white transition-colors" on:click={() => toggleSort('holes')}>
+                                    <div class="flex items-center gap-1">
+                                        Buchi
+                                        {#if sortColumn === 'holes'}
+                                            <span class="text-[#FB773C]">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                                        {/if}
+                                    </div>
+                                </th>
                                 <th class="px-4 py-3 text-left">Azioni</th>
                             {:else if activeView === 'courses'}
-                                <th class="px-4 py-3 text-left">Aula</th>
+                                <th class="px-4 py-3 text-left cursor-pointer select-none hover:text-white transition-colors" on:click={() => toggleSort('aula')}>
+                                    <div class="flex items-center gap-1">
+                                        Aula
+                                        {#if sortColumn === 'aula'}
+                                            <span class="text-[#FB773C]">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                                        {/if}
+                                    </div>
+                                </th>
                                 <th class="px-4 py-3 text-left">Azioni</th>
                             {:else if activeView === 'teachers'}
-                                <th class="px-4 py-3 text-left">Email</th>
+                                <th class="px-4 py-3 text-left cursor-pointer select-none hover:text-white transition-colors" on:click={() => toggleSort('email')}>
+                                    <div class="flex items-center gap-1">
+                                        Email
+                                        {#if sortColumn === 'email'}
+                                            <span class="text-[#FB773C]">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                                        {/if}
+                                    </div>
+                                </th>
                                 <th class="px-4 py-3 text-left">
                                     <a href="/admin/docenti/create" class="text-green-400 hover:text-green-300 text-sm font-medium">
                                         + Aggiungi
@@ -456,7 +560,7 @@
                         </tr>
                     </thead>
                     <tbody class="text-gray-300">
-                        {#each listData as item}
+                        {#each sortedData as item}
                             <tr class="border-t border-gray-700/50 hover:bg-white/5">
                                 {#if activeView === 'courses'}
                                     <td class="px-4 py-3">
@@ -477,19 +581,9 @@
                                 <td class="px-4 py-3 text-gray-500 text-sm">{item.id}</td>
                                 <td class="px-4 py-3 text-white font-medium">
                                     {#if activeView === 'students'}
-                                        <div class="flex items-center gap-2">
-                                            <a href="/admin/studenti/{item.id}" class="hover:text-[#FB773C] transition-colors">
-                                                {item.nomeCompleto}
-                                            </a>
-                                            {#if item.holes > 0}
-                                                <span 
-                                                    class="flex-shrink-0 w-5 h-5 bg-red-500/20 text-red-400 rounded-full flex items-center justify-center text-xs font-bold cursor-help"
-                                                    title="{item.holes} {item.holes === 1 ? 'buco' : 'buchi'} nell'orario"
-                                                >
-                                                    !
-                                                </span>
-                                            {/if}
-                                        </div>
+                                        <a href="/admin/studenti/{item.id}" class="hover:text-[#FB773C] transition-colors">
+                                            {item.nomeCompleto}
+                                        </a>
                                     {:else}
                                         {item.nomeCompleto || item.nome}
                                     {/if}
@@ -497,6 +591,20 @@
                                 {#if activeView === 'students'}
                                     <td class="px-4 py-3 text-gray-400">{item.classe || '—'}</td>
                                     <td class="px-4 py-3 text-gray-400">{item.email}</td>
+                                    <td class="px-4 py-3 text-center">
+                                        {#if item.sdo}
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-500/20 text-purple-400">SdO</span>
+                                        {:else}
+                                            <span class="text-gray-600">—</span>
+                                        {/if}
+                                    </td>
+                                    <td class="px-4 py-3 text-center">
+                                        {#if item.holes > 0}
+                                            <span class="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold bg-red-500/20 text-red-400">{item.holes}</span>
+                                        {:else}
+                                            <span class="text-green-400 text-sm">0</span>
+                                        {/if}
+                                    </td>
                                     <td class="px-4 py-3">
                                         <div class="flex items-center gap-2">
                                             <a
@@ -532,7 +640,7 @@
                                             </a>
                                             <button
                                                 class="text-blue-400 hover:text-blue-300 text-sm font-medium"
-                                                on:click={() => openResetPasswordModal(item.id, item.nomeCompleto)}>
+                                                on:click={() => openResetPasswordModal(item.id, item.nomeCompleto, item.email)}>
                                                 Reset Password
                                             </button>
                                             <button
@@ -811,6 +919,7 @@
             <div>
                 <h2 class="text-lg font-bold text-white">Reset Password</h2>
                 <p class="text-sm text-gray-400 mt-0.5">{resetPasswordModal.docenteName}</p>
+                <p class="text-xs text-gray-500">{resetPasswordModal.docenteEmail}</p>
             </div>
             <button on:click={closeResetPasswordModal} class="text-gray-400 hover:text-white transition-colors" title="Chiudi">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -826,21 +935,52 @@
                     Password aggiornata con successo!
                 </div>
                 {#if resetPasswordModal.generatedPassword}
-                    <div class="bg-[#1e1e2e] rounded-xl p-4 border border-gray-700/50">
-                        <p class="text-gray-400 text-xs mb-2">Nuova password generata (copiala ora, non verrà mostrata di nuovo):</p>
-                        <div class="flex items-center gap-2">
-                            <code class="flex-1 text-white text-lg font-mono bg-[#252536] px-3 py-2 rounded-lg select-all">
-                                {resetPasswordModal.generatedPassword}
-                            </code>
-                            <button 
-                                class="p-2 text-gray-400 hover:text-white bg-[#252536] rounded-lg transition-colors"
-                                title="Copia"
-                                on:click={() => navigator.clipboard.writeText(resetPasswordModal.generatedPassword)}
-                            >
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/>
-                                </svg>
-                            </button>
+                    <div class="bg-[#1e1e2e] rounded-xl p-4 border border-gray-700/50 space-y-3">
+                        <div>
+                            <p class="text-gray-400 text-xs mb-2">Email:</p>
+                            <div class="flex items-center gap-2">
+                                <code class="flex-1 text-white text-sm font-mono bg-[#252536] px-3 py-2 rounded-lg select-all">
+                                    {resetPasswordModal.docenteEmail}
+                                </code>
+                                <button 
+                                    class="p-2 bg-[#252536] rounded-lg transition-all duration-300 {copiedField === 'email' ? 'text-green-400' : 'text-gray-400 hover:text-white'}"
+                                    title={copiedField === 'email' ? 'Copiato!' : 'Copia'}
+                                    on:click={() => copyToClipboard(resetPasswordModal.docenteEmail, 'email')}
+                                >
+                                    {#if copiedField === 'email'}
+                                        <svg class="w-5 h-5 animate-check" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                                        </svg>
+                                    {:else}
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/>
+                                        </svg>
+                                    {/if}
+                                </button>
+                            </div>
+                        </div>
+                        <div>
+                            <p class="text-gray-400 text-xs mb-2">Nuova password (copiala ora, non verrà mostrata di nuovo):</p>
+                            <div class="flex items-center gap-2">
+                                <code class="flex-1 text-white text-lg font-mono bg-[#252536] px-3 py-2 rounded-lg select-all">
+                                    {resetPasswordModal.generatedPassword}
+                                </code>
+                                <button 
+                                    class="p-2 bg-[#252536] rounded-lg transition-all duration-300 {copiedField === 'password' ? 'text-green-400' : 'text-gray-400 hover:text-white'}"
+                                    title={copiedField === 'password' ? 'Copiato!' : 'Copia'}
+                                    on:click={() => copyToClipboard(resetPasswordModal.generatedPassword, 'password')}
+                                >
+                                    {#if copiedField === 'password'}
+                                        <svg class="w-5 h-5 animate-check" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                                        </svg>
+                                    {:else}
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/>
+                                        </svg>
+                                    {/if}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 {/if}
@@ -901,3 +1041,14 @@
     </div>
 </div>
 {/if}
+
+<style>
+    @keyframes checkmark {
+        0% { transform: scale(0); opacity: 0; }
+        50% { transform: scale(1.2); }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    :global(.animate-check) {
+        animation: checkmark 0.3s ease-out forwards;
+    }
+</style>
