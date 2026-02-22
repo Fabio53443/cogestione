@@ -244,9 +244,6 @@
                 {hour.label}
               </th>
             {/each}
-            <th class="text-center px-4 py-3 text-gray-400 font-medium text-sm min-w-[100px]">
-              Riepilogo
-            </th>
           </tr>
         </thead>
         <tbody>
@@ -279,23 +276,10 @@
                   {/if}
                 </td>
               {/each}
-              <td class="px-4 py-3 text-center">
-                <div class="flex items-center justify-center gap-1 text-xs">
-                  {#if summary.present > 0}
-                    <span class="bg-green-500/20 text-green-400 px-1.5 py-0.5 rounded">{summary.present}P</span>
-                  {/if}
-                  {#if summary.absent > 0}
-                    <span class="bg-red-500/20 text-red-400 px-1.5 py-0.5 rounded">{summary.absent}A</span>
-                  {/if}
-                  {#if summary.unknown > 0}
-                    <span class="bg-yellow-500/20 text-yellow-400 px-1.5 py-0.5 rounded">{summary.unknown}?</span>
-                  {/if}
-                </div>
-              </td>
             </tr>
           {:else}
             <tr>
-              <td colspan={enabledHours.length + 2} class="px-4 py-8 text-center text-gray-500">
+              <td colspan={enabledHours.length + 1} class="px-4 py-8 text-center text-gray-500">
                 {#if searchQuery}
                   Nessuno studente trovato per "{searchQuery}"
                 {:else}
