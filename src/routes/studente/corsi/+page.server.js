@@ -2,6 +2,7 @@ import { redirect } from '@sveltejs/kit';
 import { db } from '$lib/db/db';
 import { eq, sql } from 'drizzle-orm';
 import { corsi, iscrizioni, professori, studenti } from '$lib/db/models';
+import { getConfig } from '$lib/config';
 
 export async function load({ locals }) {
   if (!locals.user || locals.user.role !== 'studente') {
@@ -16,6 +17,10 @@ export async function load({ locals }) {
   if (!userRecord?.classe) {
     throw redirect(302, '/studente/complete-profile');
   }
+
+  const config = await getConfig();
+  const enabledHours = config.hours.filter(h => h.enabled);
+  const numHours = enabledHours.length || 5;
 
   try {
     // Get student's current enrollments
@@ -34,24 +39,42 @@ export async function load({ locals }) {
     currentEnrollments.forEach(e => {
       enrollmentMap.set(e.idCorso, { giorno: e.giorno, ora: e.ora });
     });
-    
-    // Get all available courses with professor info and enrollment count
+
+    // Get all available courses with professor info
     const availableCorsi = await db
       .select({
         corso: corsi,
         docente: professori,
-        enrollmentCount: sql`(
-          SELECT COUNT(*)::int 
-          FROM ${iscrizioni} 
-          WHERE ${iscrizioni.idCorso} = ${corsi.id}
-        )`
       })
       .from(corsi)
       .leftJoin(professori, eq(corsi.docente, professori.id));
 
     // Transform the data for the client
-    const corsiProcessed = availableCorsi.map(({ corso, docente, enrollmentCount }) => {
+    const corsiProcessed = availableCorsi.map(({ corso, docente }) => {
       const enrolledInfo = enrollmentMap.get(corso.id);
+
+      let maxAvailableSpots = 0;
+      if (corso.schedule && corso.availability) {
+        corso.availability.forEach(dayIndex => {
+          if (!corso.schedule[dayIndex]) return;
+          for (let timeIndex = 0; timeIndex <= numHours - corso.length; timeIndex++) {
+            if (timeIndex % corso.length !== 0) continue;
+
+            let freeInSlot = 0;
+            let isValid = true;
+            for (let i = 0; i < corso.length; i++) {
+              const spots = corso.schedule[dayIndex][timeIndex + i];
+              if (spots === undefined) isValid = false;
+              freeInSlot += spots ?? 0;
+            }
+            if (isValid) {
+              if (corso.length > 1) freeInSlot /= corso.length;
+              maxAvailableSpots = Math.max(maxAvailableSpots, freeInSlot);
+            }
+          }
+        });
+      }
+
       return {
         id: corso.id,
         nome: corso.nome,
@@ -59,7 +82,7 @@ export async function load({ locals }) {
         aula: corso.aula,
         numPosti: corso.numPosti,
         length: corso.length,
-        postiDisponibili: corso.numPosti - enrollmentCount,
+        postiDisponibili: maxAvailableSpots,
         docenteNome: `${docente.nome} ${docente.cognome}`,
         iscritto: enrolledCourseIds.includes(corso.id),
         giorno: enrolledInfo?.giorno ?? null,
