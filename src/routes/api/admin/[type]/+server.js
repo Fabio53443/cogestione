@@ -1,7 +1,7 @@
 import { json } from "@sveltejs/kit";
 import { db } from "$lib/db/db";
 import { studenti, corsi, professori, iscrizioni, siteConfig } from "$lib/db/models";
-import { eq, ilike, or, sql, count } from "drizzle-orm";
+import { eq, ilike, or, sql, count, asc, desc } from "drizzle-orm";
 import { isAdmin } from "$lib/isAdmin";
 import { getConfig } from "$lib/config";
 
@@ -14,7 +14,25 @@ export async function GET({ params, locals, url }) {
     const page = parseInt(url.searchParams.get('page') || '1');
     const limit = parseInt(url.searchParams.get('limit') || '20');
     const search = url.searchParams.get('search') || '';
+    const sortBy = url.searchParams.get('sort') || '';
+    const sortOrder = url.searchParams.get('order') || 'asc';
     const offset = (page - 1) * limit;
+
+    const orderFn = sortOrder === 'desc' ? desc : asc;
+
+    // Map sort column names to DB columns
+    function getStudentOrderBy(col) {
+      const map = { id: studenti.id, nomeCompleto: studenti.nomeCompleto, classe: studenti.classe, email: studenti.email, sdo: studenti.sdo };
+      return map[col] ? orderFn(map[col]) : null;
+    }
+    function getCourseOrderBy(col) {
+      const map = { id: corsi.id, nome: corsi.nome, aula: corsi.aula };
+      return map[col] ? orderFn(map[col]) : null;
+    }
+    function getTeacherOrderBy(col) {
+      const map = { id: professori.id, nomeCompleto: professori.nomeCompleto, email: professori.email };
+      return map[col] ? orderFn(map[col]) : null;
+    }
 
     let items = [];
     let total = 0;
@@ -28,6 +46,7 @@ export async function GET({ params, locals, url }) {
         const numDays = enabledDays.length || 5;
         const numHours = enabledHours.length || 5;
         const totalSlots = numDays * numHours;
+        const studentOrder = sortBy !== 'holes' ? getStudentOrderBy(sortBy) : null;
 
         if (search) {
           const searchPattern = `%${search}%`;
@@ -41,20 +60,22 @@ export async function GET({ params, locals, url }) {
             ));
           total = countResult.count;
 
-          items = await db
+          const studentQuery = db
             .select()
             .from(studenti)
             .where(or(
               ilike(studenti.nomeCompleto, searchPattern),
               ilike(studenti.email, searchPattern),
               ilike(studenti.classe, searchPattern)
-            ))
-            .limit(limit)
-            .offset(offset);
+            ));
+          if (studentOrder) studentQuery.orderBy(studentOrder);
+          items = await studentQuery.limit(limit).offset(offset);
         } else {
           const [countResult] = await db.select({ count: count() }).from(studenti);
           total = countResult.count;
-          items = await db.select().from(studenti).limit(limit).offset(offset);
+          const studentQuery = db.select().from(studenti);
+          if (studentOrder) studentQuery.orderBy(studentOrder);
+          items = await studentQuery.limit(limit).offset(offset);
         }
 
         // For each student, calculate holes
@@ -106,8 +127,14 @@ export async function GET({ params, locals, url }) {
             return { ...student, holes };
           });
         }
+
+        // Sort by holes (computed field) — need to sort after computation
+        if (sortBy === 'holes') {
+          items.sort((a, b) => sortOrder === 'asc' ? (a.holes || 0) - (b.holes || 0) : (b.holes || 0) - (a.holes || 0));
+        }
         break;
       case "courses":
+        const courseOrder = getCourseOrderBy(sortBy);
         if (search) {
           const searchPattern = `%${search}%`;
           const [courseCount] = await db
@@ -119,23 +146,26 @@ export async function GET({ params, locals, url }) {
               ilike(corsi.aula, searchPattern)
             ));
           total = courseCount.count;
-          items = await db
+          const courseQuery = db
             .select()
             .from(corsi)
             .where(or(
               ilike(corsi.nome, searchPattern),
               ilike(corsi.descrizione, searchPattern),
               ilike(corsi.aula, searchPattern)
-            ))
-            .limit(limit)
-            .offset(offset);
+            ));
+          if (courseOrder) courseQuery.orderBy(courseOrder);
+          items = await courseQuery.limit(limit).offset(offset);
         } else {
           const [courseCount] = await db.select({ count: count() }).from(corsi);
           total = courseCount.count;
-          items = await db.select().from(corsi).limit(limit).offset(offset);
+          const courseQuery = db.select().from(corsi);
+          if (courseOrder) courseQuery.orderBy(courseOrder);
+          items = await courseQuery.limit(limit).offset(offset);
         }
         break;
       case "teachers":
+        const teacherOrder = getTeacherOrderBy(sortBy);
         if (search) {
           const searchPattern = `%${search}%`;
           const [teacherCount] = await db
@@ -146,19 +176,21 @@ export async function GET({ params, locals, url }) {
               ilike(professori.email, searchPattern)
             ));
           total = teacherCount.count;
-          items = await db
+          const teacherQuery = db
             .select()
             .from(professori)
             .where(or(
               ilike(professori.nomeCompleto, searchPattern),
               ilike(professori.email, searchPattern)
-            ))
-            .limit(limit)
-            .offset(offset);
+            ));
+          if (teacherOrder) teacherQuery.orderBy(teacherOrder);
+          items = await teacherQuery.limit(limit).offset(offset);
         } else {
           const [teacherCount] = await db.select({ count: count() }).from(professori);
           total = teacherCount.count;
-          items = await db.select().from(professori).limit(limit).offset(offset);
+          const teacherQuery = db.select().from(professori);
+          if (teacherOrder) teacherQuery.orderBy(teacherOrder);
+          items = await teacherQuery.limit(limit).offset(offset);
         }
         break;
       default:

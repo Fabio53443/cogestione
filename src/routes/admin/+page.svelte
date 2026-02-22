@@ -29,30 +29,10 @@
             sortColumn = column;
             sortDirection = 'asc';
         }
+        if (activeView) {
+            fetchData(activeView, pagination.page);
+        }
     }
-
-    $: sortedData = (() => {
-        if (!sortColumn || !listData.length) return listData;
-        return [...listData].sort((a, b) => {
-            let valA = a[sortColumn];
-            let valB = b[sortColumn];
-            // Handle nulls
-            if (valA == null) valA = '';
-            if (valB == null) valB = '';
-            // Booleans
-            if (typeof valA === 'boolean') {
-                return sortDirection === 'asc' ? (valA === valB ? 0 : valA ? 1 : -1) : (valA === valB ? 0 : valA ? -1 : 1);
-            }
-            // Numbers
-            if (typeof valA === 'number' && typeof valB === 'number') {
-                return sortDirection === 'asc' ? valA - valB : valB - valA;
-            }
-            // Strings
-            const strA = String(valA).toLowerCase();
-            const strB = String(valB).toLowerCase();
-            return sortDirection === 'asc' ? strA.localeCompare(strB) : strB.localeCompare(strA);
-        });
-    })();
 
     // Course creation modal
     let showCourseModal = false;
@@ -159,12 +139,18 @@
     async function fetchData(type, page = 1) {
         loading = true;
         error = null;
-        sortColumn = null;
-        sortDirection = 'asc';
+        // Reset sort when switching views
+        if (type !== activeView) {
+            sortColumn = null;
+            sortDirection = 'asc';
+        }
         try {
             let url = `/api/admin/${type}?page=${page}&limit=${pagination.limit}`;
             if (searchQuery) {
                 url += `&search=${encodeURIComponent(searchQuery)}`;
+            }
+            if (sortColumn) {
+                url += `&sort=${encodeURIComponent(sortColumn)}&order=${sortDirection}`;
             }
             const response = await fetch(url);
             const data = await response.json();
@@ -560,7 +546,7 @@
                         </tr>
                     </thead>
                     <tbody class="text-gray-300">
-                        {#each sortedData as item}
+                        {#each listData as item}
                             <tr class="border-t border-gray-700/50 hover:bg-white/5">
                                 {#if activeView === 'courses'}
                                     <td class="px-4 py-3">
