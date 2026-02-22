@@ -13,6 +13,9 @@
   let editingClasse = false;
   let newClasse = '';
   let savingClasse = false;
+  let editingNote = false;
+  let noteText = '';
+  let savingNote = false;
 
   // Get enabled days from config (same as student dashboard)
   $: giorni = siteConfig?.days?.filter(d => d.enabled).map(d => d.name) || ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì'];
@@ -173,6 +176,38 @@
     savingClasse = false;
   }
 
+  function startEditingNote() {
+    noteText = student.note || '';
+    editingNote = true;
+  }
+
+  function cancelEditingNote() {
+    editingNote = false;
+    noteText = '';
+  }
+
+  async function saveNote() {
+    if (savingNote) return;
+    savingNote = true;
+    try {
+      const response = await fetch(`/api/admin/studente/${studentId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ note: noteText.trim() })
+      });
+      const result = await response.json();
+      if (result.success) {
+        student.note = result.student.note;
+        editingNote = false;
+      } else {
+        alert(result.message);
+      }
+    } catch (e) {
+      alert('Errore nel salvataggio della nota');
+    }
+    savingNote = false;
+  }
+
   loadStudent();
 </script>
 
@@ -316,6 +351,62 @@
           {corsi.length} {corsi.length === 1 ? 'iscrizione' : 'iscrizioni'}
         </div>
       </div>
+    </div>
+
+    <!-- Notes Section -->
+    <div class="bg-[#252536] rounded-2xl p-6 mb-6 border border-gray-700/50">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-2">
+          <svg class="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+          </svg>
+          <h2 class="text-lg font-semibold text-white">Note</h2>
+        </div>
+        {#if !editingNote}
+          <button
+            on:click={startEditingNote}
+            class="text-sm text-gray-400 hover:text-[#FB773C] transition-colors flex items-center gap-1.5"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+            </svg>
+            Modifica
+          </button>
+        {/if}
+      </div>
+
+      {#if editingNote}
+        <div class="space-y-3">
+          <textarea
+            bind:value={noteText}
+            placeholder="Aggiungi una nota per questo studente..."
+            rows="4"
+            class="w-full bg-[#1e1e2e] border border-gray-600 rounded-xl px-4 py-3 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-[#FB773C] focus:ring-1 focus:ring-[#FB773C] transition-colors resize-y"
+          ></textarea>
+          <div class="flex items-center gap-2 justify-end">
+            <button
+              on:click={cancelEditingNote}
+              class="px-4 py-2 text-sm text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-xl transition-colors"
+            >
+              Annulla
+            </button>
+            <button
+              on:click={saveNote}
+              disabled={savingNote}
+              class="px-4 py-2 text-sm text-white bg-[#FB773C] hover:bg-[#EB3678] rounded-xl font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {#if savingNote}
+                <div class="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+              {/if}
+              Salva
+            </button>
+          </div>
+        </div>
+      {:else if student.note}
+        <p class="text-gray-300 text-sm whitespace-pre-wrap leading-relaxed">{student.note}</p>
+      {:else}
+        <p class="text-gray-500 text-sm italic">Nessuna nota aggiunta.</p>
+      {/if}
     </div>
 
     <!-- Courses by Day (same as student dashboard) -->

@@ -34,6 +34,7 @@ export const studenti = pgTable("studenti", {
   googleId: text("google_id"),
   admin: boolean("admin").notNull().default(false),
   sdo: boolean("sdo").notNull().default(false),
+  note: text("note"),
 });
 
 export const corsi = pgTable("corsi", {

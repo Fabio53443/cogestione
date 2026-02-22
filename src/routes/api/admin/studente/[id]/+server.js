@@ -47,6 +47,7 @@ export async function GET({ params, locals }) {
         classe: student.classe,
         sdo: student.sdo,
         admin: student.admin,
+        note: student.note,
       },
       enrollments,
     });
@@ -84,6 +85,9 @@ export async function PUT({ params, locals, request }) {
     if (body.classe !== undefined) {
       updateData.classe = body.classe || null; // Allow empty string to set null
     }
+    if (body.note !== undefined) {
+      updateData.note = body.note || null;
+    }
 
     if (Object.keys(updateData).length === 0) {
       return json({ success: false, message: "No fields to update" }, { status: 400 });
@@ -105,6 +109,7 @@ export async function PUT({ params, locals, request }) {
         classe: updatedStudent.classe,
         sdo: updatedStudent.sdo,
         admin: updatedStudent.admin,
+        note: updatedStudent.note,
       },
     });
   } catch (error) {

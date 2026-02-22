@@ -29,6 +29,7 @@ export async function GET({ url, locals }) {
       nomeCompleto: studenti.nomeCompleto,
       email: studenti.email,
       sdo: studenti.sdo,
+      note: studenti.note,
     })
     .from(studenti)
     .where(classe === 'N/A' ? eq(studenti.classe, null) : eq(studenti.classe, classe));
@@ -240,6 +241,21 @@ export async function GET({ url, locals }) {
         doc.fillColor('black');
         
         yPos += 15;
+
+        // Show note if present
+        if (student.note) {
+          if (yPos > doc.page.height - 80) {
+            doc.addPage();
+            yPos = 40;
+          }
+          doc.save();
+          doc.fontSize(6).font('Helvetica-Oblique').fillColor('#6b7280');
+          doc.text(`${student.note}`, 52, yPos, { width: colWidths.nome + (colWidths.ore * enabledHours.length) - 12, lineBreak: true });
+          const noteHeight = doc.heightOfString(`${student.note}`, { width: colWidths.nome + (colWidths.ore * enabledHours.length) - 12 });
+          doc.restore();
+          doc.font('Helvetica').fontSize(8);
+          yPos += noteHeight + 4;
+        }
       }
 
       doc.y = yPos;
