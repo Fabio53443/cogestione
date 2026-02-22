@@ -9,20 +9,26 @@ export async function load({ locals }) {
   }
 
   try {
-    const user = await db.select().from(studenti).where(eq(studenti.id, locals.user.id));
+    const [user] = await db.select().from(studenti).where(eq(studenti.id, locals.user.id));
     
-    if (!user[0]) {
+    if (!user) {
       throw redirect(302, '/login');
+    }
+
+    // Check if user has a classe, redirect to complete profile if not
+    if (!user.classe) {
+      throw redirect(302, '/studente/complete-profile');
     }
     
     return {
       pageName: 'Il tuo profilo',
       user: locals.user,
-      nomeCompleto: user[0].nomeCompleto,
-      email: user[0].email,
-      classe: user[0].classe,
+      nomeCompleto: user.nomeCompleto,
+      email: user.email,
+      classe: user.classe,
     };
   } catch (error) {
+    if (error.status === 302) throw error; // Re-throw redirects
     console.error('Error fetching profile:', error);
     return {
       pageName: 'Il tuo profilo',

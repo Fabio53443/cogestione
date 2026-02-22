@@ -1,13 +1,22 @@
 import { redirect } from '@sveltejs/kit';
 import { db } from '$lib/db/db.js';
 import { eq } from 'drizzle-orm';
-import { corsi, iscrizioni, professori } from '$lib/db/models.js';
+import { corsi, iscrizioni, professori, studenti } from '$lib/db/models.js';
 import { getConfig } from '$lib/config';
 import { isSdO } from '$lib/isAdmin';
 
 export async function load({ locals }) {
   if (!locals.user || locals.user.role !== 'studente') {
     throw redirect(302, '/');
+  }
+
+  // Check if user has a classe, redirect to complete profile if not
+  const [userRecord] = await db.select({ classe: studenti.classe })
+    .from(studenti)
+    .where(eq(studenti.id, locals.user.id));
+
+  if (!userRecord?.classe) {
+    throw redirect(302, '/studente/complete-profile');
   }
 
   const config = await getConfig();

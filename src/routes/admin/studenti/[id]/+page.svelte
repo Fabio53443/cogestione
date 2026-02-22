@@ -10,6 +10,9 @@
   let togglingAdmin = false;
   let togglingSdO = false;
   let deleting = false;
+  let editingClasse = false;
+  let newClasse = '';
+  let savingClasse = false;
 
   // Get enabled days from config (same as student dashboard)
   $: giorni = siteConfig?.days?.filter(d => d.enabled).map(d => d.name) || ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì'];
@@ -138,6 +141,38 @@
     deleting = false;
   }
 
+  function startEditingClasse() {
+    newClasse = student.classe || '';
+    editingClasse = true;
+  }
+
+  function cancelEditingClasse() {
+    editingClasse = false;
+    newClasse = '';
+  }
+
+  async function saveClasse() {
+    if (savingClasse) return;
+    savingClasse = true;
+    try {
+      const response = await fetch(`/api/admin/studente/${studentId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ classe: newClasse.trim() })
+      });
+      const result = await response.json();
+      if (result.success) {
+        student.classe = result.student.classe;
+        editingClasse = false;
+      } else {
+        alert(result.message);
+      }
+    } catch (e) {
+      alert('Errore nel salvataggio della classe');
+    }
+    savingClasse = false;
+  }
+
   loadStudent();
 </script>
 
@@ -166,11 +201,46 @@
         <div class="flex-grow">
           <h1 class="text-2xl font-bold text-white">{student.nomeCompleto}</h1>
           <p class="text-gray-400">{student.email}</p>
-          {#if student.classe}
-            <span class="inline-flex items-center mt-2 bg-[#1e1e2e] text-gray-300 text-sm px-3 py-1 rounded-lg">
-              Classe: {student.classe}
-            </span>
-          {/if}
+          <div class="flex items-center gap-2 mt-2">
+            {#if editingClasse}
+              <div class="flex items-center gap-2">
+                <input
+                  type="text"
+                  bind:value={newClasse}
+                  placeholder="es. 5F"
+                  class="bg-[#1e1e2e] border border-gray-600 rounded-lg px-3 py-1.5 text-white text-sm w-24 focus:outline-none focus:border-[#FB773C]"
+                  on:keydown={(e) => e.key === 'Enter' && saveClasse()}
+                />
+                <button
+                  on:click={saveClasse}
+                  disabled={savingClasse}
+                  aria-label="Salva classe"
+                  class="bg-green-500/20 text-green-400 hover:bg-green-500/30 px-2 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+                >
+                  {#if savingClasse}
+                    <div class="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent"></div>
+                  {:else}
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                  {/if}
+                </button>
+                <button
+                  on:click={cancelEditingClasse}
+                  aria-label="Annulla modifica"
+                  class="bg-red-500/20 text-red-400 hover:bg-red-500/30 px-2 py-1.5 rounded-lg transition-colors"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+              </div>
+            {:else}
+              <button
+                on:click={startEditingClasse}
+                class="inline-flex items-center gap-2 bg-[#1e1e2e] text-gray-300 text-sm px-3 py-1 rounded-lg hover:bg-[#2a2a3a] transition-colors group"
+              >
+                <span>Classe: {student.classe || 'Non assegnata'}</span>
+                <svg class="w-3.5 h-3.5 text-gray-500 group-hover:text-[#FB773C]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+              </button>
+            {/if}
+          </div>
         </div>
         <div class="flex gap-2">
           {#if student.sdo}
