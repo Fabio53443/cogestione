@@ -250,12 +250,17 @@
           {#each filteredStudents as student (student.id)}
             <tr class="border-b border-gray-700/30 hover:bg-[#1e1e2e]/50 transition-colors">
               <td class="px-4 py-3 sticky left-0 bg-[#252536] z-10">
-                <a 
-                  href="/admin/studenti/{student.id}"
-                  class="text-white font-medium hover:text-[#FB773C] transition-colors"
-                >
-                  {student.nomeCompleto}
-                </a>
+                <div class="flex items-center gap-2">
+                  <a 
+                    href="/admin/studenti/{student.id}"
+                    class="text-white font-medium hover:text-[#FB773C] transition-colors"
+                  >
+                    {student.nomeCompleto}
+                  </a>
+                  {#if student.sdo}
+                    <span class="px-1.5 py-0.5 bg-purple-500/20 text-purple-400 text-xs font-medium rounded">SdO</span>
+                  {/if}
+                </div>
               </td>
               {#each enabledHours as hour, hourIdx}
                 {@const enrollment = attendanceMatrix[student.id]?.[selectedDay]?.[hourIdx]}

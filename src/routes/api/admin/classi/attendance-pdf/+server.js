@@ -28,6 +28,7 @@ export async function GET({ url, locals }) {
       id: studenti.id,
       nomeCompleto: studenti.nomeCompleto,
       email: studenti.email,
+      sdo: studenti.sdo,
     })
     .from(studenti)
     .where(classe === 'N/A' ? eq(studenti.classe, null) : eq(studenti.classe, classe));
@@ -178,7 +179,19 @@ export async function GET({ url, locals }) {
         }
 
         doc.fillColor('black');
-        doc.text(student.nomeCompleto, 40, yPos, { width: colWidths.nome });
+        doc.text(student.nomeCompleto, 40, yPos, { width: colWidths.nome, continued: false, lineBreak: false });
+        
+        // Show SdO badge next to name
+        if (student.sdo) {
+          const nameWidth = doc.widthOfString(student.nomeCompleto);
+          const badgeX = 40 + Math.min(nameWidth + 4, colWidths.nome - 25);
+          doc.save();
+          doc.roundedRect(badgeX, yPos - 1, 22, 11, 2).fill('#7c3aed');
+          doc.fontSize(6).font('Helvetica-Bold').fillColor('#ffffff');
+          doc.text('SdO', badgeX + 2, yPos + 1, { width: 18, align: 'center', lineBreak: false });
+          doc.restore();
+          doc.font('Helvetica').fontSize(8);
+        }
         
         xPos = 40 + colWidths.nome;
         for (let hourIndex = 0; hourIndex < enabledHours.length; hourIndex++) {
