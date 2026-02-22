@@ -90,7 +90,7 @@
       });
       const result = await response.json();
       if (result.success) {
-        student.admin = result.newStatus;
+        student = { ...student, admin: result.newStatus };
       } else {
         alert(result.message);
       }
@@ -111,7 +111,7 @@
       });
       const result = await response.json();
       if (result.success) {
-        student.sdo = result.newStatus;
+        student = { ...student, sdo: result.newStatus };
       } else {
         alert(result.message);
       }

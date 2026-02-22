@@ -9,6 +9,15 @@
   let searchQuery = '';
   let loadingPdf = false;
   let pdfError = null;
+  let notePopup = { show: false, name: '', note: '' };
+
+  function showNote(name, note) {
+    notePopup = { show: true, name, note };
+  }
+
+  function closeNote() {
+    notePopup = { show: false, name: '', note: '' };
+  }
   
   // Filter students by search
   $: filteredStudents = students.filter(s => 
@@ -257,6 +266,13 @@
                   >
                     {student.nomeCompleto}
                   </a>
+                  {#if student.note}
+                    <button class="text-yellow-400 flex-shrink-0 hover:text-yellow-300 transition-colors" on:click|stopPropagation={() => showNote(student.nomeCompleto, student.note)}>
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                      </svg>
+                    </button>
+                  {/if}
                   {#if student.sdo}
                     <span class="px-1.5 py-0.5 bg-purple-500/20 text-purple-400 text-xs font-medium rounded">SdO</span>
                   {/if}
@@ -320,3 +336,28 @@
     </div>
   </div>
 </div>
+
+<!-- Note Popup Modal -->
+{#if notePopup.show}
+  <!-- svelte-ignore a11y-click-events-have-key-events -->
+  <div class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" on:click={closeNote}>
+    <div class="bg-[#252536] rounded-2xl border border-gray-700/50 w-full max-w-md shadow-2xl" on:click|stopPropagation>
+      <div class="flex items-center justify-between px-5 py-4 border-b border-gray-700/50">
+        <div class="flex items-center gap-2">
+          <svg class="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+          </svg>
+          <h3 class="text-white font-semibold">Nota - {notePopup.name}</h3>
+        </div>
+        <button on:click={closeNote} class="text-gray-400 hover:text-white transition-colors p-1">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <div class="px-5 py-4">
+        <p class="text-gray-300 whitespace-pre-wrap text-sm leading-relaxed">{notePopup.note}</p>
+      </div>
+    </div>
+  </div>
+{/if}

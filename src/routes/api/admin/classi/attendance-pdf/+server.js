@@ -239,22 +239,25 @@ export async function GET({ url, locals }) {
         
         // Reset fill color for next row
         doc.fillColor('black');
-        
-        yPos += 15;
 
-        // Show note if present
+        // Show note if present (tight under the name)
         if (student.note) {
+          yPos += 12;
           if (yPos > doc.page.height - 80) {
             doc.addPage();
             yPos = 40;
           }
           doc.save();
           doc.fontSize(6).font('Helvetica-Oblique').fillColor('#6b7280');
-          doc.text(`${student.note}`, 52, yPos, { width: colWidths.nome + (colWidths.ore * enabledHours.length) - 12, lineBreak: true });
-          const noteHeight = doc.heightOfString(`${student.note}`, { width: colWidths.nome + (colWidths.ore * enabledHours.length) - 12 });
+          const noteWidth = colWidths.nome - 12;
+          const noteStr = `Nota: ${student.note}`;
+          doc.text(noteStr, 52, yPos, { width: noteWidth, lineBreak: true });
+          const noteHeight = doc.heightOfString(noteStr, { width: noteWidth });
           doc.restore();
           doc.font('Helvetica').fontSize(8);
-          yPos += noteHeight + 4;
+          yPos += noteHeight + 3;
+        } else {
+          yPos += 15;
         }
       }
 

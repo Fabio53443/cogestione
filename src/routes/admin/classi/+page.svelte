@@ -6,6 +6,11 @@
   let selectedClasse = null;
   let loadingPdf = false;
   let pdfError = null;
+
+  // Note popup
+  let notePopup = { show: false, name: '', text: '' };
+  function showNote(name, text) { notePopup = { show: true, name, text }; }
+  function closeNote() { notePopup = { show: false, name: '', text: '' }; }
   
   // Get enabled days from config
   $: enabledDays = siteConfig?.days?.filter(d => d.enabled) || [];
@@ -245,7 +250,16 @@
                       <span class="text-sm font-medium {student.holes > 0 ? 'text-red-400' : 'text-[#FB773C]'}">{student.nomeCompleto.charAt(0).toUpperCase()}</span>
                     </div>
                     <div class="flex-grow min-w-0">
-                      <p class="text-white font-medium truncate">{student.nomeCompleto}</p>
+                      <div class="flex items-center gap-1.5">
+                        <p class="text-white font-medium truncate">{student.nomeCompleto}</p>
+                        {#if student.note}
+                          <button class="text-yellow-400 hover:text-yellow-300 flex-shrink-0 transition-colors" on:click|preventDefault|stopPropagation={() => showNote(student.nomeCompleto, student.note)} title="Vedi nota">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                            </svg>
+                          </button>
+                        {/if}
+                      </div>
                       <p class="text-gray-400 text-sm truncate">{student.email}</p>
                     </div>
                     {#if student.holes > 0}
@@ -285,3 +299,27 @@
     {/if}
   </div>
 </div>
+
+{#if notePopup.show}
+<div class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[60] p-4"
+     on:click|self={closeNote}>
+    <div class="bg-[#252536] rounded-2xl w-full max-w-sm shadow-2xl border border-gray-700/50">
+        <div class="flex items-center justify-between px-5 py-3.5 border-b border-gray-700/50">
+            <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                </svg>
+                <h3 class="text-white font-semibold text-sm">{notePopup.name}</h3>
+            </div>
+            <button on:click={closeNote} class="text-gray-400 hover:text-white transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        <div class="px-5 py-4">
+            <p class="text-gray-300 text-sm whitespace-pre-wrap leading-relaxed">{notePopup.text}</p>
+        </div>
+    </div>
+</div>
+{/if}

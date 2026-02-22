@@ -24,6 +24,7 @@ export async function load({ locals, params }) {
       email: studenti.email,
       classe: studenti.classe,
       sdo: studenti.sdo,
+      note: studenti.note,
     }).from(studenti)
       .where(classeName === 'N/A' 
         ? eq(studenti.classe, null) 

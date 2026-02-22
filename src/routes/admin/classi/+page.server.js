@@ -22,6 +22,7 @@ export async function load({ locals }) {
       nomeCompleto: studenti.nomeCompleto,
       email: studenti.email,
       classe: studenti.classe,
+      note: studenti.note,
     }).from(studenti);
 
     // Get enrollment counts per student
