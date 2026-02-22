@@ -254,8 +254,6 @@
     <!-- Student List -->
     <div class="flex-1 overflow-y-auto">
       {#each filteredStudents as student (student.id)}
-        {@const status = getStatusInfo(student.presente)}
-        
         <!-- Desktop Row -->
         <div class="hidden sm:grid grid-cols-12 gap-4 px-6 py-3 border-b border-gray-700/30 hover:bg-[#1e1e2e]/50 items-center transition-colors">
           <div class="col-span-1">
@@ -282,14 +280,22 @@
             {/if}
           </div>
           <div class="col-span-2">
-            <button
-              class="px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 flex items-center gap-1.5 {status.bgClass}"
-              on:click={() => cycleAttendance(student)}
-              title="Clicca per cambiare stato"
+            <select
+              class="px-2 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 border focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-offset-[#252536] cursor-pointer
+                {student.presente === true ? 'bg-green-500/20 text-green-400 border-green-500/30 focus:ring-green-500/50' : 
+                 student.presente === false ? 'bg-red-500/20 text-red-400 border-red-500/30 focus:ring-red-500/50' : 
+                 'bg-gray-500/20 text-gray-400 border-gray-500/30 focus:ring-gray-500/50'}"
+              value={student.presente === true ? 'true' : student.presente === false ? 'false' : 'null'}
+              on:change={(e) => {
+                const val = e.target.value;
+                const newStatus = val === 'true' ? true : val === 'false' ? false : null;
+                setAttendance(student, newStatus);
+              }}
             >
-              <span class="h-2 w-2 rounded-full {status.dotClass}"></span>
-              {status.label}
-            </button>
+              <option value="null" class="bg-[#252536] text-gray-300">N/D</option>
+              <option value="true" class="bg-[#252536] text-gray-300">Presente</option>
+              <option value="false" class="bg-[#252536] text-gray-300">Assente</option>
+            </select>
           </div>
         </div>
 
@@ -305,13 +311,22 @@
             <div class="flex-1 min-w-0">
               <div class="flex items-center justify-between gap-2">
                 <span class="font-medium text-white text-sm truncate">{student.studentName || 'N/A'}</span>
-                <button
-                  class="flex-shrink-0 px-2.5 py-1 rounded-lg text-xs font-medium transition-all duration-200 flex items-center gap-1.5 {status.bgClass}"
-                  on:click={() => cycleAttendance(student)}
+                <select
+                  class="flex-shrink-0 px-2 py-1 rounded-lg text-xs font-medium transition-all duration-200 border focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-offset-[#252536]
+                    {student.presente === true ? 'bg-green-500/20 text-green-400 border-green-500/30 focus:ring-green-500/50' : 
+                     student.presente === false ? 'bg-red-500/20 text-red-400 border-red-500/30 focus:ring-red-500/50' : 
+                     'bg-gray-500/20 text-gray-400 border-gray-500/30 focus:ring-gray-500/50'}"
+                  value={student.presente === true ? 'true' : student.presente === false ? 'false' : 'null'}
+                  on:change={(e) => {
+                    const val = e.target.value;
+                    const newStatus = val === 'true' ? true : val === 'false' ? false : null;
+                    setAttendance(student, newStatus);
+                  }}
                 >
-                  <span class="h-2 w-2 rounded-full {status.dotClass}"></span>
-                  {status.label}
-                </button>
+                  <option value="null" class="bg-[#252536] text-gray-300">N/D</option>
+                  <option value="true" class="bg-[#252536] text-gray-300">Presente</option>
+                  <option value="false" class="bg-[#252536] text-gray-300">Assente</option>
+                </select>
               </div>
               {#if student.studentEmail}
                 <a 

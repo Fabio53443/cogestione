@@ -74,6 +74,55 @@ export async function GET({ url, locals }) {
     const chunks = [];
     doc.on('data', chunk => chunks.push(chunk));
 
+    // Helper function to draw legend
+    function drawLegend() {
+      doc.moveDown(1.5);
+      
+      const boxX = 40;
+      const boxY = doc.y;
+      const boxWidth = doc.page.width - 80;
+      const boxHeight = 38;
+      const boxRadius = 4;
+      
+      // Draw background rectangle with dashed stroke
+      doc.save();
+      doc.roundedRect(boxX, boxY, boxWidth, boxHeight, boxRadius)
+         .fill('#f0f0f0');
+      doc.roundedRect(boxX, boxY, boxWidth, boxHeight, boxRadius)
+         .dash(3, { space: 2 })
+         .lineWidth(1)
+         .stroke('#999999');
+      doc.restore();
+      
+      // "Legenda" title centred
+      doc.fontSize(8).font('Helvetica-Bold').fillColor('#333333');
+      doc.text('Legenda', boxX, boxY + 5, { width: boxWidth, align: 'center' });
+      
+      // Legend items row
+      const itemsY = boxY + 20;
+      const legendItems = [
+        { label: 'P = Presente', color: '#22c55e' },
+        { label: 'A = Assente', color: '#ef4444' },
+        { label: '? = Non registrato', color: '#eab308' },
+        { label: '- = Non iscritto', color: '#6b7280' }
+      ];
+      
+      const totalItemsWidth = legendItems.length * 95;
+      let legendX = boxX + (boxWidth - totalItemsWidth) / 2;
+      
+      for (const item of legendItems) {
+        doc.save();
+        doc.circle(legendX + 4, itemsY + 3, 4).fill(item.color);
+        doc.restore();
+        doc.fillColor('#333333').fontSize(7).font('Helvetica');
+        doc.text(item.label, legendX + 12, itemsY, { continued: false });
+        doc.y = itemsY;
+        legendX += 95;
+      }
+      
+      doc.y = boxY + boxHeight + 5;
+    }
+
     // Title
     doc.fontSize(18).font('Helvetica-Bold')
       .text(`Presenze Classe ${classe}`, { align: 'center' });
@@ -123,11 +172,12 @@ export async function GET({ url, locals }) {
         a.student.nomeCompleto.localeCompare(b.student.nomeCompleto)
       )) {
         // Check if we need a new page
-        if (yPos > doc.page.height - 60) {
+        if (yPos > doc.page.height - 80) {
           doc.addPage();
           yPos = 40;
         }
 
+        doc.fillColor('black');
         doc.text(student.nomeCompleto, 40, yPos, { width: colWidths.nome });
         
         xPos = 40 + colWidths.nome;
@@ -135,24 +185,56 @@ export async function GET({ url, locals }) {
           // Match by the index position (ora) and day
           const enrollment = enrollments.find(e => e.giorno === day.id && e.ora === hourIndex);
           let status = '-';
+          let bgColor = '#6b7280'; // gray
+          let textColor = '#9ca3af';
+          
           if (enrollment) {
             if (enrollment.presente === true) {
               status = 'P';
+              bgColor = '#22c55e'; // green
+              textColor = '#ffffff';
             } else if (enrollment.presente === false) {
               status = 'A';
+              bgColor = '#ef4444'; // red
+              textColor = '#ffffff';
             } else {
               status = '?';
+              bgColor = '#eab308'; // yellow
+              textColor = '#ffffff';
             }
           }
-          doc.text(status, xPos, yPos, { width: colWidths.ore, align: 'center' });
+          
+          // Draw colored circle background
+          const cellCenterX = xPos + colWidths.ore / 2;
+          const cellCenterY = yPos + 4;
+          const circleRadius = 6;
+          
+          doc.save();
+          doc.circle(cellCenterX, cellCenterY, circleRadius)
+             .fill(bgColor);
+          doc.restore();
+          
+          // Draw status text centered on circle
+          doc.fillColor(textColor);
+          doc.fontSize(7).font('Helvetica-Bold');
+          doc.text(status, xPos, yPos + 1, { width: colWidths.ore, align: 'center' });
+          doc.font('Helvetica').fontSize(8);
+          
           xPos += colWidths.ore;
         }
+        
+        // Reset fill color for next row
+        doc.fillColor('black');
         
         yPos += 15;
       }
 
       doc.y = yPos;
-      doc.moveDown(1);
+      
+      // Draw legend after each table
+      drawLegend();
+      
+      doc.moveDown(0.5);
 
       // Add page break between days (except for last day)
       if (daysToInclude.indexOf(day) < daysToInclude.length - 1) {
@@ -160,13 +242,8 @@ export async function GET({ url, locals }) {
       }
     }
 
-    // Legend
+    // aggiungi data generazione
     doc.moveDown(1);
-    doc.fontSize(8).font('Helvetica')
-      .text('Legenda: \nP = Presente, \nA = Assente, \n? = Non registrato, \n- = Non iscritto', { align: 'left' });
-
-      // aggiungi data generazione
-    doc.moveDown(2);
     const generationDate = new Date();
     const formattedDate = generationDate.toLocaleDateString('it-IT', {
         day: '2-digit',
@@ -175,8 +252,40 @@ export async function GET({ url, locals }) {
         hour: '2-digit',
         minute: '2-digit'
     });
-    doc.fontSize(8).font('Helvetica-Oblique')
+    doc.fontSize(8).font('Helvetica-Oblique').fillColor('black')
       .text(`Generato il: ${formattedDate}`, { align: 'left' });
+
+    // Add page numbers and header to all pages
+    const totalPages = doc.bufferedPageRange().count;
+    for (let i = 0; i < totalPages; i++) {
+      doc.switchToPage(i);
+      
+      // Add class name header on pages after the first
+      if (i == 0) {
+        doc.save();
+        doc.fontSize(9).font('Helvetica').fillColor('#999999');
+        doc.text(
+          `${i + 1} di ${totalPages}`,
+          40,
+          15,
+          { width: doc.page.width - 80, align: 'right', lineBreak: false }
+        );
+        doc.restore();
+      }
+      // Add class name header on pages after the first
+      if (i > 0) {
+        doc.save();
+        doc.fontSize(9).font('Helvetica').fillColor('#999999');
+        doc.text(
+          `Classe ${classe} - ${i + 1} di ${totalPages}`,
+          40,
+          15,
+          { width: doc.page.width - 80, align: 'right', lineBreak: false }
+        );
+        doc.restore();
+      }
+      
+
     // Finalize PDF
     doc.end();
 
