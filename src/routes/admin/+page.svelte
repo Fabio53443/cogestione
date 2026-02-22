@@ -179,7 +179,7 @@
     }
 
     async function deleteCourse(id) {
-        if (!confirm("Vuoi veramente eliminare questo corso?")) {
+        if (!confirm("Vuoi veramente eliminare questo  corso?")) {
             return;
         }
 
