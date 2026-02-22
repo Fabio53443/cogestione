@@ -284,7 +284,7 @@ export async function GET({ url, locals }) {
         );
         doc.restore();
       }
-      
+    }
 
     // Finalize PDF
     doc.end();
