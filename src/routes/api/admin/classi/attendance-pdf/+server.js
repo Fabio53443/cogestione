@@ -105,7 +105,7 @@ export async function GET({ url, locals }) {
       const legendItems = [
         { label: 'P = Presente', color: '#22c55e' },
         { label: 'A = Assente', color: '#ef4444' },
-        { label: '? = Non registrato', color: '#eab308' },
+        { label: '? = Appello non fatto', color: '#eab308' },
         { label: '- = Non iscritto', color: '#6b7280' }
       ];
       

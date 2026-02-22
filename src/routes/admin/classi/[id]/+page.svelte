@@ -327,7 +327,7 @@
       </div>
       <div class="flex items-center gap-2">
         <div class="w-8 h-8 rounded-lg bg-yellow-500/20 text-yellow-400 flex items-center justify-center font-semibold">?</div>
-        <span class="text-gray-300">Non registrato</span>
+        <span class="text-gray-300">Appello non fatto</span>
       </div>
       <div class="flex items-center gap-2">
         <div class="w-8 h-8 rounded-lg bg-gray-800/30 text-gray-600 flex items-center justify-center">-</div>
