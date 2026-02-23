@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
 import { db } from '$lib/db/db';
-import { iscrizioni, studenti, corsi } from '$lib/db/models';
+import { iscrizioni, studenti, corsi, presenze_logs } from '$lib/db/models';
 import { eq, and, inArray } from 'drizzle-orm';
 
 export async function GET({ params, url }) {
@@ -49,7 +49,7 @@ export async function GET({ params, url }) {
   });
 }
 
-export async function PUT({ params, request }) {
+export async function PUT({ params, request, locals }) {
   const courseId = parseInt(params.id);
   const { studentId, present, studentEnrollmentId } = await request.json();
 
@@ -79,6 +79,17 @@ export async function PUT({ params, request }) {
   }
 
   // Update all hours in the block
+  // Read all affected enrollments to capture previous values
+  const toUpdate = await db.select().from(iscrizioni).where(
+    and(
+      eq(iscrizioni.idStudente, idStudente),
+      eq(iscrizioni.idCorso, courseId),
+      eq(iscrizioni.giorno, giorno),
+      inArray(iscrizioni.ora, hoursToUpdate)
+    )
+  );
+
+  // Perform the update
   await db
     .update(iscrizioni)
     .set({ presente: present })
@@ -90,6 +101,28 @@ export async function PUT({ params, request }) {
         inArray(iscrizioni.ora, hoursToUpdate)
       )
     );
+
+  // Insert a log entry for each affected enrollment
+  try {
+    const changedBy = locals?.user?.id || null;
+    const nowLogs = toUpdate.map(row => ({
+      id_iscrizione: row.id,
+      id_studente: row.idStudente,
+      id_corso: row.idCorso,
+      giorno: row.giorno,
+      ora: row.ora,
+      previous_presente: row.presente === undefined ? null : row.presente,
+      new_presente: present,
+      changed_by: changedBy,
+      reason: null,
+    }));
+
+    if (nowLogs.length) {
+      await db.insert(presenze_logs).values(...nowLogs);
+    }
+  } catch (err) {
+    console.error('Failed to insert presenze log:', err);
+  }
 
   // Return the updated primary enrollment record
   const [updated] = await db.select()

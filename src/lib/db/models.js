@@ -79,6 +79,21 @@ export const iscrizioni = pgTable("iscrizioni", {
   presente: boolean("presente").default(null), // null = not recorded, true = present, false = absent
 });
 
+// Attendance logs table - records changes to iscrizioni.presente
+export const presenze_logs = pgTable("presenze_logs", {
+  id: serial("id").primaryKey(),
+  id_iscrizione: integer("id_iscrizione").references(() => iscrizioni.id),
+  id_studente: integer("id_studente").notNull().references(() => studenti.id),
+  id_corso: integer("id_corso").notNull().references(() => corsi.id),
+  giorno: integer("giorno").notNull(),
+  ora: integer("ora").notNull(),
+  previous_presente: boolean("previous_presente"),
+  new_presente: boolean("new_presente"),
+  changed_by: integer("changed_by"), // user id who made the change (may be null)
+  reason: text("reason"),
+  created_at: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+});
+
 // Notifications/Alerts table - admin announcements
 export const notifications = pgTable("notifications", {
   id: serial("id").primaryKey(),
@@ -89,3 +104,4 @@ export const notifications = pgTable("notifications", {
   active: boolean("active").notNull().default(true),
   createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });
+
