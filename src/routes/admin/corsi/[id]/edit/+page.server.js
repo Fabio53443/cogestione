@@ -1,5 +1,5 @@
 import { db } from '$lib/db/db';
-import { corsi } from '$lib/db/models';
+import { corsi, professori } from '$lib/db/models';
 import { eq } from 'drizzle-orm';
 import { isAdmin } from '$lib/isAdmin';
 import { redirect } from '@sveltejs/kit';
@@ -20,6 +20,8 @@ export async function load({ params, locals }) {
     return { corso: null, error: 'Corso non trovato' };
   }
 
+  const teachers = await db.select().from(professori);
+
   return {
     pageName: 'Modifica Corso',
     corso: {
@@ -31,6 +33,8 @@ export async function load({ params, locals }) {
       numPosti: course.numPosti,
       length: course.length,
       availability: course.availability,
-    }
+      docente: course.docente,
+    },
+    teachers,
   };
 }

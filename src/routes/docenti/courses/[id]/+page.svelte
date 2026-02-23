@@ -208,7 +208,6 @@
       </div>
     {/if}
   </div>
-
   <AttendanceModal
     show={showAttendanceModal}
     students={selectedStudents}

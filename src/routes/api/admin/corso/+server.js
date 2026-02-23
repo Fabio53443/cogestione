@@ -36,7 +36,7 @@ export const POST = async ({ locals, request }) => {
                 email: newDocente.email,
                 hashedPass
             }).returning();
-            
+
             teacherId = newTeacher.id;
         }
 
@@ -89,7 +89,7 @@ export const PUT = async ({ locals, request }) => {
 
     try {
         const formData = await request.json();
-        const { id, nome, descrizione, aula, numPosti, length, availability } = formData;
+        const { id, nome, descrizione, aula, numPosti, length, availability, docenteId } = formData;
 
         if (!id) {
             return json({ success: false, message: 'Course ID is required.' }, { status: 400 });
@@ -109,6 +109,7 @@ export const PUT = async ({ locals, request }) => {
         if (numPosti !== undefined) updateData.numPosti = parseInt(numPosti);
         if (length !== undefined) updateData.length = parseInt(length);
         if (availability !== undefined) updateData.availability = availability;
+        if (docenteId !== undefined) updateData.docente = parseInt(docenteId);
 
         const [updatedCourse] = await db
             .update(corsi)
