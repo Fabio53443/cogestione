@@ -71,7 +71,7 @@
               <td class="px-4 py-3 text-sm text-gray-300">{l.ora != null ? l.ora + 1 : '-'}</td>
               <td class="px-4 py-3 text-sm text-yellow-300">{l.previous_presente === null ? '-' : l.previous_presente ? 'P' : 'A'}</td>
               <td class="px-4 py-3 text-sm text-green-300">{l.new_presente === null ? '-' : l.new_presente ? 'P' : 'A'}</td>
-              <td class="px-4 py-3 text-sm text-gray-300">{l.changed_by_student || l.changed_by_prof || l.changed_by}</td>
+              <td class="px-4 py-3 text-sm text-gray-300">{l.changed_by_name ? l.changed_by_name : `ID ${l.changed_by}`}</td>
               <td class="px-4 py-3 text-sm text-gray-400">{l.created_at}</td>
               <td class="px-4 py-3">
                 <button class="text-sm text-white/80 hover:text-white" on:click={() => showDetails(l)}>Dettagli</button>
@@ -109,11 +109,11 @@
           </div>
 
           <div class="flex items-start gap-4">
-            <div class="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center text-white font-semibold text-lg">{details.item.changed_by_student ? details.item.changed_by_student.split(' ').map(n=>n[0]).join('').slice(0,2) : (details.item.changed_by_prof ? details.item.changed_by_prof.split(' ').map(n=>n[0]).join('').slice(0,2) : (String(details.item.changed_by||'').slice(0,2)))}</div>
+            <div class="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center text-white font-semibold text-lg">{String(details.item.changed_by||'').slice(0,2)}</div>
             <div>
               <div class="text-sm text-gray-400">Modificato da</div>
-              <div class="text-white font-semibold">{details.item.changed_by_student || details.item.changed_by_prof || `ID ${details.item.changed_by}`}</div>
-              <div class="text-sm text-gray-400 mt-1">Role: {details.item.changed_by_prof ? 'Docente' : (details.item.changed_by_student ? 'Studente' : 'Unknown')}</div>
+              <div class="text-white font-semibold">{details.item.changed_by_name ? details.item.changed_by_name : `ID ${details.item.changed_by}`}</div>
+              <div class="text-sm text-gray-400 mt-1">{details.item.changed_by_name ? (details.item.changed_by === details.item.id_studente ? 'Stesso studente' : 'SDO') : 'Non-SDO / ID'}</div>
             </div>
           </div>
 

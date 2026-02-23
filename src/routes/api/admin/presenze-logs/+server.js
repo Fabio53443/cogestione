@@ -1,7 +1,7 @@
 import { json } from '@sveltejs/kit';
 import { db } from '$lib/db/db';
-import { presenze_logs, studenti, corsi, professori } from '$lib/db/models';
-import { eq, and, gte, lte, desc, ilike, or } from 'drizzle-orm';
+import { presenze_logs, studenti, corsi } from '$lib/db/models';
+import { eq, and, gte, lte, desc, ilike, or, inArray } from 'drizzle-orm';
 import { isAdmin } from '$lib/isAdmin';
 
 export async function GET({ url, locals }) {
@@ -32,8 +32,6 @@ export async function GET({ url, locals }) {
     whereClauses.push(or(
       ilike(studenti.nomeCompleto, pattern),
       ilike(studenti.email, pattern),
-      ilike(professori.nomeCompleto, pattern),
-      ilike(professori.email, pattern),
       ilike(corsi.nome, pattern)
     ));
   }
@@ -51,16 +49,14 @@ export async function GET({ url, locals }) {
     ora: presenze_logs.ora,
     previous_presente: presenze_logs.previous_presente,
     new_presente: presenze_logs.new_presente,
-    changed_by: presenze_logs.changed_by,
-    changed_by_student: studenti.nomeCompleto,
-    changed_by_prof: professori.nomeCompleto,
+  changed_by: presenze_logs.changed_by,
     reason: presenze_logs.reason,
     created_at: presenze_logs.created_at,
   })
   .from(presenze_logs)
   .leftJoin(studenti, eq(presenze_logs.id_studente, studenti.id))
   .leftJoin(corsi, eq(presenze_logs.id_corso, corsi.id))
-  .leftJoin(professori, eq(presenze_logs.changed_by, professori.id));
+  ;
 
   if (whereClauses.length) {
     base = base.where(and(...whereClauses));
@@ -80,6 +76,25 @@ export async function GET({ url, locals }) {
   const offset = (page - 1) * perPage;
 
   const results = await base.orderBy(desc(presenze_logs.id)).limit(perPage).offset(offset);
+
+  // Resolve changed_by names for SDO users only
+  try {
+    const changedByIds = Array.from(new Set(results.map(r => r.changed_by).filter(id => id != null)));
+    if (changedByIds.length > 0) {
+      const sdoUsers = await db.select({ id: studenti.id, name: studenti.nomeCompleto })
+        .from(studenti)
+        .where(and(inArray(studenti.id, changedByIds), eq(studenti.sdo, true)));
+
+      const nameMap = new Map(sdoUsers.map(u => [u.id, u.name]));
+
+      // attach changed_by_name when available
+      for (const row of results) {
+        row.changed_by_name = nameMap.get(row.changed_by) || null;
+      }
+    }
+  } catch (err) {
+    console.error('Failed to resolve changed_by names:', err);
+  }
 
   return json({ success: true, logs: results, page, perPage });
 }
