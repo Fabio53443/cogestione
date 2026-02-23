@@ -118,5 +118,9 @@
                 Non hai un account? <a href="/register" class="text-[#FB773C] hover:text-[#EB3678] font-medium">Registrati</a>
             </p>
         {/if}
+                    <p class="text-center text-gray-400 text-xl mt-6">
+                Tieni un corso? Accedi  <a href="/docenti/login" class="text-[#FB773C] hover:text-[#EB3678] font-medium">da qui</a>
+            </p>
+
     </div>
 </div>

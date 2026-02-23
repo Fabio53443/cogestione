@@ -22,15 +22,12 @@
             <a href="/login" class="bg-[#FB773C] hover:bg-[#EB3678] text-white font-semibold py-3 px-8 rounded-xl transition-all duration-200 hover:scale-105 hover:shadow-lg hover:shadow-[#FB773C]/20">
                 Accedi
             </a>
-            <a href="/register" class="border border-gray-600 hover:border-[#FB773C] text-gray-300 hover:text-white font-semibold py-3 px-8 rounded-xl transition-all duration-200">
-                Registrati
-            </a>
-        </div>
-
-        <a href="/docenti/login" class="inline-flex items-center gap-2 text-gray-500 hover:text-gray-300 text-sm transition-colors mb-6">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    <a href="/docenti/login" class="border border-gray-600 hover:border-[#FB773C] text-gray-300 hover:text-white font-semibold py-3 px-8 rounded-xl transition-all duration-200">
             Tieni un corso? Accedi qui
         </a>
+
+        </div>
+
 
         {#if siteConfig.socialLink && siteConfig.socialHandle}
             <br><a href="{siteConfig.socialLink}" class="inline-flex items-center gap-2 text-gray-400 hover:text-[#FB773C] transition-colors">

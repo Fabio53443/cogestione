@@ -244,7 +244,7 @@
                         <span class="sr-only">Seleziona</span>
                       </th>
                       <th class="py-2 w-24 text-left">Turno</th>
-                      <th class="py-2 text-left">Occupazione</th>
+                      <th class="py-2 text-left">Posti liberi</th>
                       <th class="py-2 w-32 text-center">Presenze</th>
                       <th class="py-2 w-32 text-center">Riempi</th>
                     </tr>

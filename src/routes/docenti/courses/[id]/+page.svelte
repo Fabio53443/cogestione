@@ -124,7 +124,7 @@
                   <thead>
                     <tr class="text-gray-500 text-sm">
                       <th class="py-2 w-24 text-left">Turno</th>
-                      <th class="py-2 text-left">Occupazione</th>
+                      <th class="py-2 text-left">Posti liberi</th>
                       <th class="py-2 w-32 text-center">Azioni</th>
                     </tr>
                   </thead>
