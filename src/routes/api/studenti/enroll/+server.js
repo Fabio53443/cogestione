@@ -2,17 +2,18 @@ import { json } from '@sveltejs/kit';
 import { db } from '$lib/db/db';
 import { iscrizioni, corsi } from '$lib/db/models';
 import { eq, and } from 'drizzle-orm';
+import { isAdmin } from '$lib/isAdmin';
 import { getConfig } from '$lib/config';
 
 export const POST = async ({ locals, request }) => {
   // Check if registration is open
   const config = await getConfig();
-  if (!config.registrationOpen) {
+  if (!config.registrationOpen && !await isAdmin(locals)) {
     return json({ success: false, message: 'Le iscrizioni sono chiuse.' }, { status: 401 });
   }
   
   // Check deadline
-  if (config.registrationDeadline && new Date() > new Date(config.registrationDeadline)) {
+  if (config.registrationDeadline && new Date() > new Date(config.registrationDeadline) && !await isAdmin(locals)) {
     return json({ success: false, message: 'Il termine per le iscrizioni è scaduto.' }, { status: 401 });
   }
 
