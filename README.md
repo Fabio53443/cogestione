@@ -1,25 +1,26 @@
 # Cogestione
 Una piattaforma per gestire la cogestione scolastica! 
 
-## Developing
+# Dev
+Start a postgres db with `docker compose up -d` and push the DB schema with `npm run db:push`; 
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+Run `npm run start` to start the dev server. 
 
-```bash
-npm run dev
+Database configuration
+```DATABASE_URL=postgres://user:password@localhost:5432/cogestione```
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
+JWT Secret for authentication tokens
+```JWT_SECRET=your-secret-key-here```
 
-## Building
+Login method for students: "email" (default) or "google"
+```LOGIN_METHOD=email```
 
-To create a production version of your app:
+Google OAuth configuration (required if LOGIN_METHOD=google)
+```GOOGLE_CLIENT_ID=your-google-client-id```
+```GOOGLE_CLIENT_SECRET=your-google-client-secret```
 
-```bash
-npm run build
-```
+Allowed Google Workspace domain (optional, restricts login to this domain), Leave empty to allow any Google account
+```GOOGLE_ALLOWED_DOMAIN=example.edu```
 
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://kit.svelte.dev/docs/adapters) for your target environment.
+Cloudflare Pages URL (required for Google OAuth callback)
+```CF_PAGES_URL=http://localhost:5173```
