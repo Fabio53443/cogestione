@@ -1,23 +1,29 @@
 import { db } from '$lib/db/db';
-import { corsi } from '$lib/db/models';
+import { corsi, professori } from '$lib/db/models';
 import { eq } from 'drizzle-orm';
+import { isAdmin } from '$lib/isAdmin';
+import { redirect } from '@sveltejs/kit';
 
 export async function load({ params, locals }) {
-  const courseId = parseInt(params.id, 10);
-  if (!locals.user) {
-    return { corso: null, error: 'Utente non autenticato' };
+  if (!(await isAdmin(locals))) {
+    throw redirect(302, '/studente/dashboard');
   }
+
+  const courseId = parseInt(params.id, 10);
 
   const [course] = await db
     .select()
     .from(corsi)
     .where(eq(corsi.id, courseId));
 
-  if (!course || course.docente !== locals.user.id) {
-    return { corso: null, error: 'Corso non trovato o non sei autorizzato a visualizzarlo' };
+  if (!course) {
+    return { corso: null, error: 'Corso non trovato' };
   }
 
+  const teachers = await db.select().from(professori);
+
   return {
+    pageName: 'Modifica Corso',
     corso: {
       id: course.id,
       nome: course.nome,
@@ -27,6 +33,8 @@ export async function load({ params, locals }) {
       numPosti: course.numPosti,
       length: course.length,
       availability: course.availability,
-    }
+      docente: course.docente,
+    },
+    teachers,
   };
 }

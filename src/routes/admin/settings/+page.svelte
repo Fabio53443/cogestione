@@ -164,6 +164,17 @@
         </label>
       </div>
 
+      <div class="flex items-center">
+        <label class="flex items-center cursor-pointer">
+          <input
+            type="checkbox"
+            bind:checked={config.sdoCanTakeAttendance}
+            class="form-checkbox h-5 w-5 text-[#FB773C] rounded border-gray-300 mr-2"
+          />
+          <span class="text-gray-700 font-bold">SDO può fare appello</span>
+        </label>
+      </div>
+
       <div>
         <label class="block text-gray-700 text-sm font-bold mb-2">Durata Massima Corso (ore)</label>
         <input

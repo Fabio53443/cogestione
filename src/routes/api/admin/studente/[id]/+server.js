@@ -47,11 +47,73 @@ export async function GET({ params, locals }) {
         classe: student.classe,
         sdo: student.sdo,
         admin: student.admin,
+        note: student.note,
       },
       enrollments,
     });
   } catch (error) {
     console.error("Admin Student API Error:", error);
+    return json(
+      { success: false, message: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+// Update student details (classe, etc.)
+export async function PUT({ params, locals, request }) {
+  if (!(await isAdmin(locals))) {
+    return json({ success: false, message: "Unauthorized" }, { status: 401 });
+  }
+
+  try {
+    const studentId = parseInt(params.id);
+    const body = await request.json();
+
+    // Get student info
+    const [student] = await db
+      .select()
+      .from(studenti)
+      .where(eq(studenti.id, studentId));
+
+    if (!student) {
+      return json({ success: false, message: "Student not found" }, { status: 404 });
+    }
+
+    // Build update object with only provided fields
+    const updateData = {};
+    if (body.classe !== undefined) {
+      updateData.classe = body.classe || null; // Allow empty string to set null
+    }
+    if (body.note !== undefined) {
+      updateData.note = body.note || null;
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      return json({ success: false, message: "No fields to update" }, { status: 400 });
+    }
+
+    const [updatedStudent] = await db
+      .update(studenti)
+      .set(updateData)
+      .where(eq(studenti.id, studentId))
+      .returning();
+
+    return json({
+      success: true,
+      message: "Studente aggiornato con successo",
+      student: {
+        id: updatedStudent.id,
+        nomeCompleto: updatedStudent.nomeCompleto,
+        email: updatedStudent.email,
+        classe: updatedStudent.classe,
+        sdo: updatedStudent.sdo,
+        admin: updatedStudent.admin,
+        note: updatedStudent.note,
+      },
+    });
+  } catch (error) {
+    console.error("Admin Student Update API Error:", error);
     return json(
       { success: false, message: "Internal server error" },
       { status: 500 }

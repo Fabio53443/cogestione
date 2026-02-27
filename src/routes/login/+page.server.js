@@ -1,5 +1,5 @@
 import { redirect } from '@sveltejs/kit';
-
+import { LOGIN_METHOD } from '$env/static/private';
 
 export function load({ locals }) {
   if (locals.user && locals.user.role === 'studente') {
@@ -10,5 +10,6 @@ export function load({ locals }) {
   }
   return {
     pageName: 'Login dello studente',
+    loginMethod: LOGIN_METHOD || 'email',
   };
 }

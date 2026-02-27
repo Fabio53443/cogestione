@@ -29,6 +29,7 @@ export const defaultConfig = {
   maxCourseLength: 3,
   registrationDeadline: null,
   registrationOpen: true,
+  sdoCanTakeAttendance: true,
   welcomeMessage: 'Benvenuto alla piattaforma per la gestione dei corsi!',
   socialLink: '',
   socialHandle: '',

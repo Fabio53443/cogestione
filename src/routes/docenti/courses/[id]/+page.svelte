@@ -12,6 +12,7 @@
   let selectedStudents = [];
   let currentHour;
   let currentDay;
+  let currentCourseLength = 1;
 
   function barColor(free, total) {
     return free === 0 ? 'bg-red-500' : 'bg-green-500';
@@ -39,15 +40,26 @@
     currentDay = dayIndex;
     const response = await fetch(`/api/studenti/attendance/${corso.id}?hour=${currentHour}&day=${currentDay}`);
     if (response.ok) {
-      selectedStudents = await response.json();
+      const data = await response.json();
+      selectedStudents = data.students || data;
+      currentCourseLength = data.courseLength || 1;
       showAttendanceModal = true;
     }
   }
 
   function handleAttendanceUpdate(updatedStudent) {
-    selectedStudents = selectedStudents.map(student => 
-      student.id === updatedStudent.id ? updatedStudent : student
-    );
+    // Handle both single and array updates
+    if (Array.isArray(updatedStudent)) {
+      updatedStudent.forEach(updated => {
+        selectedStudents = selectedStudents.map(student => 
+          student.id === updated.id ? updated : student
+        );
+      });
+    } else {
+      selectedStudents = selectedStudents.map(student => 
+        student.id === updatedStudent.id ? updatedStudent : student
+      );
+    }
   }
 </script>
 
@@ -112,7 +124,7 @@
                   <thead>
                     <tr class="text-gray-500 text-sm">
                       <th class="py-2 w-24 text-left">Turno</th>
-                      <th class="py-2 text-left">Occupazione</th>
+                      <th class="py-2 text-left">Posti liberi</th>
                       <th class="py-2 w-32 text-center">Azioni</th>
                     </tr>
                   </thead>
@@ -196,11 +208,13 @@
       </div>
     {/if}
   </div>
-
   <AttendanceModal
     show={showAttendanceModal}
     students={selectedStudents}
     onClose={() => showAttendanceModal = false}
     onUpdateAttendance={handleAttendanceUpdate}
+    courseId={corso.id}
+    courseLength={currentCourseLength}
+    courseName={corso.nome}
   />
 {/if}

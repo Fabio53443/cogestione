@@ -1,15 +1,26 @@
 import { redirect } from '@sveltejs/kit';
 import { db } from '$lib/db/db.js';
 import { eq } from 'drizzle-orm';
-import { corsi, iscrizioni, professori } from '$lib/db/models.js';
+import { corsi, iscrizioni, professori, studenti } from '$lib/db/models.js';
 import { getConfig } from '$lib/config';
+import { isSdO } from '$lib/isAdmin';
 
 export async function load({ locals }) {
   if (!locals.user || locals.user.role !== 'studente') {
     throw redirect(302, '/');
   }
 
+  // Check if user has a classe, redirect to complete profile if not
+  const [userRecord] = await db.select({ classe: studenti.classe })
+    .from(studenti)
+    .where(eq(studenti.id, locals.user.id));
+
+  if (!userRecord?.classe) {
+    throw redirect(302, '/studente/complete-profile');
+  }
+
   const config = await getConfig();
+  const userIsSdO = await isSdO(locals);
 
   try {
     // Get all courses the student is enrolled in
@@ -40,7 +51,9 @@ export async function load({ locals }) {
       pageName: 'Dashboard studente',
       user: locals.user,
       corsi: corsiIscritto,
-      siteConfig: config
+      siteConfig: config,
+      isSdO: userIsSdO,
+      sdoCanTakeAttendance: config.sdoCanTakeAttendance !== false
     };
   } catch (error) {
     console.error('Error fetching courses:', error);
@@ -50,7 +63,9 @@ export async function load({ locals }) {
       user: locals.user,
       corsi: [],
       error: 'Si è verificato un errore durante il caricamento dei corsi.',
-      siteConfig: config
+      siteConfig: config,
+      isSdO: userIsSdO,
+      sdoCanTakeAttendance: config.sdoCanTakeAttendance !== false
     };
   }
 }

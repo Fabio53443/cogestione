@@ -1,4 +1,5 @@
 <script>
+  import { goto } from '$app/navigation';
   export let data;
   const { studentId, siteConfig } = data;
 
@@ -7,6 +8,14 @@
   let loading = true;
   let error = null;
   let togglingAdmin = false;
+  let togglingSdO = false;
+  let deleting = false;
+  let editingClasse = false;
+  let newClasse = '';
+  let savingClasse = false;
+  let editingNote = false;
+  let noteText = '';
+  let savingNote = false;
 
   // Get enabled days from config (same as student dashboard)
   $: giorni = siteConfig?.days?.filter(d => d.enabled).map(d => d.name) || ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì'];
@@ -81,7 +90,7 @@
       });
       const result = await response.json();
       if (result.success) {
-        student.admin = result.newStatus;
+        student = { ...student, admin: result.newStatus };
       } else {
         alert(result.message);
       }
@@ -89,6 +98,114 @@
       alert('Errore nel cambio stato admin');
     }
     togglingAdmin = false;
+  }
+
+  async function toggleSdOStatus() {
+    if (togglingSdO) return;
+    togglingSdO = true;
+    try {
+      const response = await fetch('/api/admin/sdo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: studentId })
+      });
+      const result = await response.json();
+      if (result.success) {
+        student = { ...student, sdo: result.newStatus };
+      } else {
+        alert(result.message);
+      }
+    } catch (e) {
+      alert('Errore nel cambio stato SdO');
+    }
+    togglingSdO = false;
+  }
+
+  async function deleteStudent() {
+    if (!confirm("Vuoi veramente eliminare questo studente? Tutte le sue iscrizioni verranno eliminate.")) {
+      return;
+    }
+    deleting = true;
+    try {
+      const response = await fetch('/api/admin/studente/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: studentId })
+      });
+      const result = await response.json();
+      if (result.success) {
+        goto('/admin');
+      } else {
+        alert(result.message);
+      }
+    } catch (e) {
+      alert('Errore durante l\'eliminazione');
+    }
+    deleting = false;
+  }
+
+  function startEditingClasse() {
+    newClasse = student.classe || '';
+    editingClasse = true;
+  }
+
+  function cancelEditingClasse() {
+    editingClasse = false;
+    newClasse = '';
+  }
+
+  async function saveClasse() {
+    if (savingClasse) return;
+    savingClasse = true;
+    try {
+      const response = await fetch(`/api/admin/studente/${studentId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ classe: newClasse.trim() })
+      });
+      const result = await response.json();
+      if (result.success) {
+        student.classe = result.student.classe;
+        editingClasse = false;
+      } else {
+        alert(result.message);
+      }
+    } catch (e) {
+      alert('Errore nel salvataggio della classe');
+    }
+    savingClasse = false;
+  }
+
+  function startEditingNote() {
+    noteText = student.note || '';
+    editingNote = true;
+  }
+
+  function cancelEditingNote() {
+    editingNote = false;
+    noteText = '';
+  }
+
+  async function saveNote() {
+    if (savingNote) return;
+    savingNote = true;
+    try {
+      const response = await fetch(`/api/admin/studente/${studentId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ note: noteText.trim() })
+      });
+      const result = await response.json();
+      if (result.success) {
+        student.note = result.student.note;
+        editingNote = false;
+      } else {
+        alert(result.message);
+      }
+    } catch (e) {
+      alert('Errore nel salvataggio della nota');
+    }
+    savingNote = false;
   }
 
   loadStudent();
@@ -119,11 +236,46 @@
         <div class="flex-grow">
           <h1 class="text-2xl font-bold text-white">{student.nomeCompleto}</h1>
           <p class="text-gray-400">{student.email}</p>
-          {#if student.classe}
-            <span class="inline-flex items-center mt-2 bg-[#1e1e2e] text-gray-300 text-sm px-3 py-1 rounded-lg">
-              Classe: {student.classe}
-            </span>
-          {/if}
+          <div class="flex items-center gap-2 mt-2">
+            {#if editingClasse}
+              <div class="flex items-center gap-2">
+                <input
+                  type="text"
+                  bind:value={newClasse}
+                  placeholder="es. 5F"
+                  class="bg-[#1e1e2e] border border-gray-600 rounded-lg px-3 py-1.5 text-white text-sm w-24 focus:outline-none focus:border-[#FB773C]"
+                  on:keydown={(e) => e.key === 'Enter' && saveClasse()}
+                />
+                <button
+                  on:click={saveClasse}
+                  disabled={savingClasse}
+                  aria-label="Salva classe"
+                  class="bg-green-500/20 text-green-400 hover:bg-green-500/30 px-2 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+                >
+                  {#if savingClasse}
+                    <div class="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent"></div>
+                  {:else}
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                  {/if}
+                </button>
+                <button
+                  on:click={cancelEditingClasse}
+                  aria-label="Annulla modifica"
+                  class="bg-red-500/20 text-red-400 hover:bg-red-500/30 px-2 py-1.5 rounded-lg transition-colors"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+              </div>
+            {:else}
+              <button
+                on:click={startEditingClasse}
+                class="inline-flex items-center gap-2 bg-[#1e1e2e] text-gray-300 text-sm px-3 py-1 rounded-lg hover:bg-[#2a2a3a] transition-colors group"
+              >
+                <span>Classe: {student.classe || 'Non assegnata'}</span>
+                <svg class="w-3.5 h-3.5 text-gray-500 group-hover:text-[#FB773C]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+              </button>
+            {/if}
+          </div>
         </div>
         <div class="flex gap-2">
           {#if student.sdo}
@@ -138,6 +290,20 @@
       <!-- Admin Actions -->
       <div class="flex flex-wrap gap-3 pt-4 border-t border-gray-700/50 mt-4">
         <button
+          on:click={toggleSdOStatus}
+          disabled={togglingSdO}
+          class="flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-colors {student.sdo ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30' : 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30'} disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {#if togglingSdO}
+            <div class="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent"></div>
+          {:else}
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+            </svg>
+          {/if}
+          {student.sdo ? 'Rimuovi SdO' : 'Promuovi a SdO'}
+        </button>
+        <button
           on:click={toggleAdminStatus}
           disabled={togglingAdmin}
           class="flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-colors {student.admin ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30' : 'bg-purple-500/20 text-purple-400 hover:bg-purple-500/30'} disabled:opacity-50 disabled:cursor-not-allowed"
@@ -150,6 +316,20 @@
             </svg>
           {/if}
           {student.admin ? 'Rimuovi Admin' : 'Promuovi ad Admin'}
+        </button>
+        <button
+          on:click={deleteStudent}
+          disabled={deleting}
+          class="flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-colors bg-red-500/20 text-red-400 hover:bg-red-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {#if deleting}
+            <div class="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent"></div>
+          {:else}
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+            </svg>
+          {/if}
+          Elimina studente
         </button>
       </div>
 
@@ -171,6 +351,62 @@
           {corsi.length} {corsi.length === 1 ? 'iscrizione' : 'iscrizioni'}
         </div>
       </div>
+    </div>
+
+    <!-- Notes Section -->
+    <div class="bg-[#252536] rounded-2xl p-6 mb-6 border border-gray-700/50">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-2">
+          <svg class="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+          </svg>
+          <h2 class="text-lg font-semibold text-white">Note</h2>
+        </div>
+        {#if !editingNote}
+          <button
+            on:click={startEditingNote}
+            class="text-sm text-gray-400 hover:text-[#FB773C] transition-colors flex items-center gap-1.5"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+            </svg>
+            Modifica
+          </button>
+        {/if}
+      </div>
+
+      {#if editingNote}
+        <div class="space-y-3">
+          <textarea
+            bind:value={noteText}
+            placeholder="Aggiungi una nota per questo studente..."
+            rows="4"
+            class="w-full bg-[#1e1e2e] border border-gray-600 rounded-xl px-4 py-3 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-[#FB773C] focus:ring-1 focus:ring-[#FB773C] transition-colors resize-y"
+          ></textarea>
+          <div class="flex items-center gap-2 justify-end">
+            <button
+              on:click={cancelEditingNote}
+              class="px-4 py-2 text-sm text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-xl transition-colors"
+            >
+              Annulla
+            </button>
+            <button
+              on:click={saveNote}
+              disabled={savingNote}
+              class="px-4 py-2 text-sm text-white bg-[#FB773C] hover:bg-[#EB3678] rounded-xl font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {#if savingNote}
+                <div class="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+              {/if}
+              Salva
+            </button>
+          </div>
+        </div>
+      {:else if student.note}
+        <p class="text-gray-300 text-sm whitespace-pre-wrap leading-relaxed">{student.note}</p>
+      {:else}
+        <p class="text-gray-500 text-sm italic">Nessuna nota aggiunta.</p>
+      {/if}
     </div>
 
     <!-- Courses by Day (same as student dashboard) -->
@@ -214,6 +450,25 @@
                           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                           Presente
                         </span>
+                  {:else if corso.presente === false}
+                    <span
+                      class="inline-flex items-center gap-1.5 bg-red-500/20 text-red-400 text-xs font-medium px-3 py-1.5 rounded-lg"
+                    >
+                      <svg
+                        class="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        ><path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M6 18L18 6M6 6l12 12"
+                        /></svg
+                      >
+                      Assente
+                    </span>
+
                       {:else}
                         <span class="inline-flex items-center gap-1.5 bg-gray-600/30 text-gray-400 text-xs font-medium px-3 py-1.5 rounded-lg">
                           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>

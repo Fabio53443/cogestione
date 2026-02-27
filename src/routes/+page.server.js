@@ -1,6 +1,7 @@
 import { redirect } from '@sveltejs/kit';
+import { getConfig } from '$lib/config';
 
-export function load( { locals }) {
+export async function load( { locals }) {
   if (locals.user && locals.user.role == 'docente') {
     return redirect(302, '/docenti/dashboard');
       }
@@ -8,7 +9,9 @@ export function load( { locals }) {
     return redirect(302, '/studente/dashboard');
       }
 
+    const config = await getConfig();
+
     return {
-      pageName: 'Autogestione', 
+      pageName: config.eventName || 'Autogestione', 
     };
   }
