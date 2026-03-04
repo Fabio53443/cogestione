@@ -133,7 +133,7 @@
             aula: "",
             numPosti: "",
             length: 1,
-            availability: [],
+            availability: giorni.map(g => g.id),
             docenteId: "",
             createNewDocente: false,
             newDocente: { nome: "", email: "", password: "" },
@@ -1387,11 +1387,11 @@
                                 placeholder="Nome completo"
                             />
                             <input
-                                type="email"
+                                type="text"
                                 bind:value={courseForm.newDocente.email}
                                 required={courseForm.createNewDocente}
                                 class="w-full bg-[#252536] border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-[#FB773C] text-sm"
-                                placeholder="Email"
+                                placeholder="Username o email"
                             />
                             <input
                                 type="password"
